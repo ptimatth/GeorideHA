@@ -10,8 +10,6 @@ from .const import CONF_EMAIL, CONF_PASSWORD
 
 _LOGGER = logging.getLogger(__name__)
 
-STEP_ID = 'user'
-
 @config_entries.HANDLERS.register("georide")
 class GeorideConfigFlow(config_entries.ConfigFlow):
     """Georide config flow """
@@ -23,16 +21,18 @@ class GeorideConfigFlow(config_entries.ConfigFlow):
             return self.async_abort(reason="one_instance_allowed")
 
         if user_input is None:
-            _LOGGER.info("user email: %", str(user_input))
-
-            return self.async_show_form(step_id=STEP_ID, data_schema=vol.Schema({
+            return self.async_show_form(step_id='user', data_schema=vol.Schema({
                 vol.Required(CONF_EMAIL): vol.All(str, vol.Length(min=3)),
                 vol.Required(CONF_PASSWORD): vol.All(str)
             }))
-            # process info
 
-
-        return self.async_abort(reason="no_credentials")
+        return self.async_create_entry(
+            title=user_input[CONF_EMAIL],
+            data={
+                CONF_EMAIL: user_input[CONF_EMAIL],
+                CONF_PASSWORD: user_input[CONF_PASSWORD]            
+            }
+        )
 
 
 
@@ -42,10 +42,10 @@ class GeorideConfigFlow(config_entries.ConfigFlow):
         _LOGGER.info("user email: %", str(user_input))
 
         return self.async_create_entry(
-            title="Georide",
+            title=user_input[CONF_EMAIL] + "machin",
             data={
-                CONF_EMAIL: "un_emal",
-                CONF_PASSWORD: "un password"            
-            },
+                CONF_EMAIL: user_input[CONF_EMAIL],
+                CONF_PASSWORD: user_input[CONF_PASSWORD]            
+            }
         )
         

@@ -63,7 +63,8 @@ async def async_setup_entry(hass, entry):
         password
     )
     hass.data[DOMAIN]["context"] = context
-    """  hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker")    ) """
+    hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
+
     return True
 
 

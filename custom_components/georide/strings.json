@@ -1,10 +1,10 @@
 {
   "config": {
-    "title": "Georide",
+    "title": "GeoRide",
     "step": {
       "user": {
-        "title": "Set up Georide",
-        "description": "Are you sure you want to set up Georide?",
+        "title": "Set up GeoRide",
+        "description": "Are you sure you want to set up GeoRide ?",
         "data": {
           "email": "email",
           "password": "password"

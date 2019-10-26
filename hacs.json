@@ -1,7 +1,7 @@
 {
   "name": "Georide integration",
-  "content_in_root": true,
-  "rener_readme": true,
+  "content_in_root": false,
+  "render_readme": true,
   "domains": ["devices_tracker", "sensor"],
   "country": ["FR"]
 }

@@ -27,8 +27,8 @@ _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = vol.Schema(
     {
         vol.Required(DOMAIN, default={}): {
-            vol.Required(CONF_EMAIL): vol.All(str, vol.Length(min=3)),
-            vol.Required(CONF_PASSWORD): vol.All(str)
+            vol.Optional(CONF_EMAIL): vol.All(str, vol.Length(min=3)),
+            vol.Optional(CONF_PASSWORD): vol.All(str)
         }
     },
     extra=vol.ALLOW_EXTRA,

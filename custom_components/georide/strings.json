@@ -1,0 +1,17 @@
+{
+  "config": {
+    "title": "Georide",
+    "step": {
+      "user": {
+        "title": "Set up Georide",
+        "description": "Are you sure you want to set up OwnTracks?"
+      }
+    },
+    "abort": {
+      "one_instance_allowed": "Only a single instance is allowed."
+    },
+    "create_entry": {
+      "default": "\n\nJust give your credentials"
+    }
+  }
+}

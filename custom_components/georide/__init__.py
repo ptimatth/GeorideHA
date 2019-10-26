@@ -59,6 +59,7 @@ async def async_setup_entry(hass, entry):
     password = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
 
     account = GeorideApi.get_authorisation_token(email, password)
+    
     context = GeorideContext(
         hass,
         email,

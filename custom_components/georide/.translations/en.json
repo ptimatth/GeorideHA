@@ -17,7 +17,7 @@
 
     },
     "create_entry": {
-      "default": "\n\nJust give your credentials"
+      "default": "\n\nLogin succes ({auth_token})"
     }
   }
 }

@@ -41,8 +41,17 @@ class GeorideConfigFlow(config_entries.ConfigFlow):
 
         _LOGGER.info("user email: %", str(user_input))
 
+        if self._async_current_entries():
+            return self.async_abort(reason="one_instance_allowed")
+
+        if user_input is None:
+            return self.async_show_form(step_id='user', data_schema=vol.Schema({
+                vol.Required(CONF_EMAIL): vol.All(str, vol.Length(min=3)),
+                vol.Required(CONF_PASSWORD): vol.All(str)
+            }))
+
         return self.async_create_entry(
-            title=user_input[CONF_EMAIL] + "machin",
+            title=user_input,
             data={
                 CONF_EMAIL: user_input[CONF_EMAIL],
                 CONF_PASSWORD: user_input[CONF_PASSWORD]            

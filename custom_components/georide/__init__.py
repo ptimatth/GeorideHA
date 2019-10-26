@@ -14,12 +14,12 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.setup import async_when_setup
 
 from .const import (
-    DOMAIN,
     CONF_EMAIL,
     CONF_PASSWORD,
     TRACKER_ID
 )
 
+DOMAIN = "georide"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,6 +63,7 @@ async def async_setup_entry(hass, entry):
         password
     )
     hass.data[DOMAIN]["context"] = context
+    """  hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker")    ) """
     return True
 
 

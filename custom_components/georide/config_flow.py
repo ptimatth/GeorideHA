@@ -5,14 +5,14 @@ from homeassistant import config_entries
 import voluptuous as vol
 
 
-from .const import DOMAIN, CONF_EMAIL, CONF_PASSWORD
+from .const import CONF_EMAIL, CONF_PASSWORD
 
 
 _LOGGER = logging.getLogger(__name__)
 
 STEP_ID = 'user'
 
-@config_entries.HANDLERS.register(DOMAIN)
+@config_entries.HANDLERS.register("georide")
 class GeorideConfigFlow(config_entries.ConfigFlow):
     """Georide config flow """
     

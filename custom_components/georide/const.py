@@ -1,6 +1,5 @@
 """ Georide const file """
 
-DOMAIN = "georide"
 CONF_EMAIL = "email"
 CONF_PASSWORD = "password"
 

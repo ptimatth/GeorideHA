@@ -13,14 +13,16 @@ from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.setup import async_when_setup
 
+from .const import (
+    DOMAIN,
+    CONF_EMAIL,
+    CONF_PASSWORD,
+    TRACKER_ID
+)
+
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "georide"
-CONF_EMAIL = "email"
-CONF_PASSWORD = "password"
-
-TRACKER_ID = "trackerId"
 
 CONFIG_SCHEMA = vol.Schema(
     {

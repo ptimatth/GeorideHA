@@ -1,13 +1,13 @@
 {
   "domain": "georide",
   "name": "Georide",
-  "config_flow": false,
+  "config_flow": true,
   "documentation": "https://git.tontontux.fr/mduval/GeorideHA",
   "requirements": [
     "georideapilib==0.1.0"
   ],
   "dependencies": [
-    "urllib3",
+    "urllib3, georideapilib",
   ],
   "codeowners": ["ptimatth"]
 }

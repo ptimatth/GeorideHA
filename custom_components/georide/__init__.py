@@ -35,8 +35,8 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-def setup(hass, config):
-    """Initialize Georide component."""
+async def async_setup(hass, config):
+    """Setup  Georide component."""
     hass.data[DOMAIN] = {"config": config[DOMAIN], "devices": {}, "unsub": None}
     hass.async_create_task(
         hass.config_entries.flow.async_init(
@@ -52,6 +52,18 @@ def setup(hass, config):
 
 
 
+async def async_setup_entry(hass, entry):
+    """Set up OwnTracks entry."""
+    config = hass.data[DOMAIN]["config"]
+    email = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
+    password = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
+    context = GeorideContext(
+        hass,
+        email,
+        password
+    )
+    hass.data[DOMAIN]["context"] = context
+    return True
 
 
 class GeorideContext:

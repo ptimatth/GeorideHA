@@ -4,11 +4,17 @@
     "step": {
       "user": {
         "title": "Set up Georide",
-        "description": "Are you sure you want to set up OwnTracks?"
+        "description": "Are you sure you want to set up Georide?",
+        "data": {
+          "email": "email",
+          "password": "password"
+        }
       }
     },
     "abort": {
-      "one_instance_allowed": "Only a single instance is allowed."
+      "one_instance_allowed": "Only a single instance is allowed.",
+      "no_credential": "You need to add your credentails."
+
     },
     "create_entry": {
       "default": "\n\nJust give your credentials"

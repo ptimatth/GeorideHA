@@ -6,8 +6,6 @@
   "requirements": [
     "georideapilib==0.1.0"
   ],
-  "dependencies": [
-    "urllib3, georideapilib",
-  ],
-  "codeowners": ["ptimatth"]
+  "dependencies": [],
+  "codeowners": ["@ptimatth"]
 }

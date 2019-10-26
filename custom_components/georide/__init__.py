@@ -53,15 +53,23 @@ async def async_setup(hass, config):
 
 
 async def async_setup_entry(hass, entry):
-    """Set up OwnTracks entry."""
+    """Set up Georide entry."""
     config = hass.data[DOMAIN]["config"]
     email = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
     password = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
+
+    account = GeorideApi.get_authorisation_token(email, password)
     context = GeorideContext(
         hass,
         email,
-        password
+        password,
+        account.auth_token
     )
+
+    entry["description_placeholders"] = {
+        "auth_token":  account.auth_token
+    }
+
     hass.data[DOMAIN]["context"] = context
     hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
 
@@ -71,13 +79,13 @@ async def async_setup_entry(hass, entry):
 class GeorideContext:
     """Hold the current Georide context."""
 
-    def __init__(self, hass, email, password):
+    def __init__(self, hass, email, password, token):
         """Initialize an Georide context."""
         self._hass = hass
         self._email = email
         self._password = password
         self._georide_trackers = defaultdict(set)
-        self._token = None
+        self._token = token
 
     @property
     def hass(self):

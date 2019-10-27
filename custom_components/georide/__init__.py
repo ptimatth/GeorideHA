@@ -5,6 +5,8 @@ import logging
 from datetime import timedelta
 import voluptuous as vol
 
+
+from aiohttp.web import json_response
 from georideapilib.objects import GeorideAccount
 import georideapilib.api as GeorideApi
 
@@ -51,6 +53,17 @@ async def async_setup(hass, config):
     _LOGGER.info("Georide-setup ")
 
 
+
+    # Return boolean to indicate that initialization was successful.
+    return True
+
+
+
+async def async_setup_entry(hass, entry):
+    """Set up Georide entry."""
+
+
+
     def georide_update(event):
         """Update tracker info"""
         nonlocal hass
@@ -60,26 +73,16 @@ async def async_setup(hass, config):
 
         token = georide_context.async_get_token()
         trackers = GeorideApi.get_trackers(token)
-
-        _LOGGER.info('Georide Trackers event %s', trackers)
         georide_context.georide_trackers = trackers
-
-        hass.bus.fire(DOMAIN + '_trackers_update', {
-            'trackers': trackers
-        })
+        hass.helpers.dispatcher.async_dispatcher_send(DOMAIN, hass, georide_context, json_response([]))
 
 
     ha_event.async_track_time_interval(hass, georide_update, timedelta(seconds=30))
 
 
 
-    # Return boolean to indicate that initialization was successful.
-    return True
 
 
-
-async def async_setup_entry(hass, entry):
-    """Set up Georide entry."""
     config = hass.data[DOMAIN]["config"]
     email = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
     password = config.get(CONF_PASSWORD) or entry.data[CONF_PASSWORD]
@@ -128,6 +131,7 @@ class GeorideContext:
         self._password = password
         self._georide_trackers = defaultdict(set)
         self._token = token
+        self._pending_msg = []
 
     @property
     def hass(self):
@@ -163,3 +167,18 @@ class GeorideContext:
     def async_get_token(self):
         """ here we return the current valid tocken, TODO: add here token expiration control"""
         return self._token
+
+    @callback
+    def async_get_tracker(self, tracker_id):
+        """ here we return the current valid tocken, TODO: add here token expiration control"""
+        for tracker in self._georide_trackers:
+            if tracker.tracker_id == tracker_id:
+                return tracker
+        return None
+
+
+    @callback
+    def async_see(self, **data):
+        """Send a see message to the device tracker."""
+        _LOGGER.info("sync_see")
+        self._pending_msg.append(data)

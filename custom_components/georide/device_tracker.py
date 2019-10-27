@@ -94,7 +94,8 @@ class GeorideTrackerEntity(TrackerEntity):
         return {
             "name": self.name,
             "identifiers": {(GEORIDE_DOMAIN, self._tracker_id)},
-            "manufacturer": "GeoRide"
+            "manufacturer": "GeoRide",
+            "odometer": "{} km".format(self._data.odometer)
         }
 
 

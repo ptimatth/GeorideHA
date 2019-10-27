@@ -11,32 +11,32 @@ import georideapilib.api as GeorideApi
 from . import DOMAIN as GEORIDE_DOMAIN
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__) 
+
 
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up Georide tracker based off an entry."""
 
+    # @callback
+    # def _receive_data(dev_id, **data):
+    #     """Receive set location."""
+    #     _LOGGER.info("Datariceived from parrent")
+    # 
+    #     entity = hass.data[GEORIDE_DOMAIN]["devices"].get(dev_id)
+    # 
+    #     if entity is not None:
+    #         entity.update_data(data)
+    #         return
+    # 
+    #     entity = GeorideLockSwitchEntity(dev_id, georide_context.async_get_token, data)
+    #     hass.data[GEORIDE_DOMAIN]["devices"][dev_id] = entity
+    #     async_add_entities([entity])
+    # 
+    # hass.data[GEORIDE_DOMAIN]["context"].set_async_see(_receive_data)
+
+
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]
         
-
-
-    def handle_event(event):
-        """Receive tracker update."""
-        nonlocal hass
-        _LOGGER.info('event recieve')
-
-        trackers = event.data.get('trackers')
-        
-        # for tracker in trackers:
-        #    entity = hass.data[GEORIDE_DOMAIN]["devices"].get(tracker.tracker_id)
-        #    if entity is not None:
-        #        entity.update_data(tracker)
-        #    else:
-        #        entity = GeorideLockSwitchEntity(tracker.tracker_id, tracker.tracker_name,
-        #                                         georide_context.async_get_token, data=tracker) 
-        #       async_add_entities([entity])
-
-    #hass.bus.listen(GEORIDE_DOMAIN + '_trackers_update', handle_event)
 
     if georide_context.async_get_token() is None:
         return False
@@ -48,8 +48,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     lock_switch_entities = []
     for tracker in trackers:
-        entity = GeorideLockSwitchEntity(tracker.tracker_id, tracker.tracker_name,
-                                         georide_context.async_get_token, data=tracker)
+        entity = GeorideLockSwitchEntity(tracker.tracker_id, georide_context.async_get_token,
+                                         georide_context.async_get_tracker, data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = entity
         lock_switch_entities.append(entity)
 
@@ -62,14 +62,16 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 class GeorideLockSwitchEntity(SwitchDevice):
     """Represent a tracked device."""
 
-    def __init__(self, tracker_id, name, get_token_callback, data):
+    def __init__(self, tracker_id, get_token_callback, get_tracker_callback, data):
         """Set up Georide entity."""
         self._tracker_id = tracker_id
-        self._name = name
         self._data = data or {}
         self._get_token_callback = get_token_callback
+        self._get_tracker_callback = get_tracker_callback
+        self._name = data.tracker_name
         self._is_on = data.is_locked
         self.entity_id = ENTITY_ID_FORMAT.format("lock."+str(tracker_id))
+        self._state = {}
 
 
     async def async_turn_on(self, **kwargs):
@@ -95,6 +97,9 @@ class GeorideLockSwitchEntity(SwitchDevice):
     async def async_update(self):
         """ update the current tracker"""
         _LOGGER.info('async_update ')
+        self._data = self._get_tracker_callback(self._tracker_id)
+        self._name = self._data.tracker_name
+        self._is_on = self._data.is_locked
         return
 
 
@@ -134,3 +139,17 @@ class GeorideLockSwitchEntity(SwitchDevice):
             "identifiers": {(GEORIDE_DOMAIN, self._tracker_id)},
             "manufacturer": "GeoRide"
         }
+
+
+    @property
+    def should_poll(self):
+        """No polling needed."""
+        return True
+
+    @callback
+    def update_data(self, data):
+        """Mark the device as seen."""
+        self._data = data
+        self._name = data.tracker_name
+        self._is_on = data.is_locked
+        self.async_write_ha_state()

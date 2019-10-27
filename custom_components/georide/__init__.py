@@ -69,12 +69,15 @@ async def async_setup_entry(hass, entry):
         account.auth_token
     )
 
-    entry["description_placeholders"] = {
-        "auth_token":  account.auth_token or "null"
-    }
-
     hass.data[DOMAIN]["context"] = context
     hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
+
+    return True
+
+async def async_unload_entry(hass, entry):
+    """Unload an Georide config entry."""
+    await hass.config_entries.async_forward_entry_unload(entry, "device_tracker")
+    hass.data[DOMAIN]["unsub"]()
 
     return True
 

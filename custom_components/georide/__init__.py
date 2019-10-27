@@ -56,10 +56,12 @@ async def async_setup_entry(hass, entry):
     """Set up Georide entry."""
     config = hass.data[DOMAIN]["config"]
     email = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
-    password = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
+    password = config.get(CONF_PASSWORD) or entry.data[CONF_PASSWORD]
+
+    if email is None or password is None:
+        return False
 
     account = GeorideApi.get_authorisation_token(email, password)
-    
     context = GeorideContext(
         hass,
         email,
@@ -68,7 +70,7 @@ async def async_setup_entry(hass, entry):
     )
 
     entry["description_placeholders"] = {
-        "auth_token":  account.auth_token
+        "auth_token":  account.auth_token or "null"
     }
 
     hass.data[DOMAIN]["context"] = context

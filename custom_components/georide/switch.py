@@ -94,6 +94,12 @@ class GeorideLockSwitchEntity(SwitchDevice):
         """ Georide switch token callback method """
         return self._token_callback
     
+    @property
+    def icon(self):
+        if self._is_on:
+            return "mdi:lock"
+        return "mdi:lock-open"
+    
 
     @property
     def device_info(self):

@@ -129,3 +129,6 @@ class GeorideContext:
         """ here we return the current valid tocken, TODO: add here token expiration control"""
         return self._token
 
+    async def async_update(self):
+        """ update the current tracker"""
+        _LOGGER.info('async_update ')

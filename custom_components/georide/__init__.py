@@ -1,16 +1,20 @@
 """ georide custom conpennt """
 from collections import defaultdict
 
+import logging
+from datetime import timedelta
+import voluptuous as vol
+
 from georideapilib.objects import GeorideAccount
 import georideapilib.api as GeorideApi
 
-import logging
-import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_WEBHOOK_ID
 from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
+import homeassistant.helpers.event as ha_event
+
 from homeassistant.setup import async_when_setup
 
 from .const import (
@@ -47,6 +51,28 @@ async def async_setup(hass, config):
     _LOGGER.info("Georide-setup ")
 
 
+    def georide_update(event):
+        """Update tracker info"""
+        nonlocal hass
+        _LOGGER.info('Georide update event %s', event)
+
+        georide_context = hass.data[DOMAIN]["context"]
+
+        token = georide_context.async_get_token()
+        trackers = GeorideApi.get_trackers(token)
+
+        _LOGGER.info('Georide Trackers event %s', trackers)
+        georide_context.georide_trackers = trackers
+
+        hass.bus.fire(DOMAIN + '_trackers_update', {
+            'trackers': trackers
+        })
+
+
+    ha_event.async_track_time_interval(hass, georide_update, timedelta(seconds=30))
+
+
+
     # Return boolean to indicate that initialization was successful.
     return True
 
@@ -70,6 +96,11 @@ async def async_setup_entry(hass, entry):
     )
 
     hass.data[DOMAIN]["context"] = context
+
+
+
+
+
     hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
     hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "switch"))
 
@@ -123,12 +154,12 @@ class GeorideContext:
         """ georide tracker list """
         return self._georide_trackers
 
+    @georide_trackers.setter
+    def georide_trackers(self, trackers):
+        """ georide tracker list """
+        self._georide_trackers = trackers
 
     @callback
     def async_get_token(self):
         """ here we return the current valid tocken, TODO: add here token expiration control"""
         return self._token
-
-    async def async_update(self):
-        """ update the current tracker"""
-        _LOGGER.info('async_update ')

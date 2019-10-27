@@ -2,6 +2,7 @@
 
 import logging
 
+from homeassistant.core import callback
 from homeassistant.components.switch import SwitchDevice
 from homeassistant.components.switch import ENTITY_ID_FORMAT
 
@@ -17,14 +18,34 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]
         
-    if georide_context.token is None:
+
+
+    def handle_event(event):
+        """Receive tracker update."""
+        nonlocal hass
+        _LOGGER.info('event recieve')
+
+        trackers = event.data.get('trackers')
+        
+        # for tracker in trackers:
+        #    entity = hass.data[GEORIDE_DOMAIN]["devices"].get(tracker.tracker_id)
+        #    if entity is not None:
+        #        entity.update_data(tracker)
+        #    else:
+        #        entity = GeorideLockSwitchEntity(tracker.tracker_id, tracker.tracker_name,
+        #                                         georide_context.async_get_token, data=tracker) 
+        #       async_add_entities([entity])
+
+    #hass.bus.listen(GEORIDE_DOMAIN + '_trackers_update', handle_event)
+
+    if georide_context.async_get_token() is None:
         return False
 
-    _LOGGER.info('Current georide token: %s', georide_context.async_get_token())
-        
+
+    _LOGGER.info('Current georide token: %s', georide_context.async_get_token())    
     trackers = GeorideApi.get_trackers(georide_context.async_get_token())
 
-    
+
     lock_switch_entities = []
     for tracker in trackers:
         entity = GeorideLockSwitchEntity(tracker.tracker_id, tracker.tracker_name,
@@ -37,15 +58,16 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     return True
 
 
+
 class GeorideLockSwitchEntity(SwitchDevice):
     """Represent a tracked device."""
 
-    def __init__(self, tracker_id, name, token_callback, data):
+    def __init__(self, tracker_id, name, get_token_callback, data):
         """Set up Georide entity."""
         self._tracker_id = tracker_id
         self._name = name
         self._data = data or {}
-        self._token_callback = token_callback
+        self._get_token_callback = get_token_callback
         self._is_on = data.is_locked
         self.entity_id = ENTITY_ID_FORMAT.format("lock."+str(tracker_id))
 
@@ -53,25 +75,27 @@ class GeorideLockSwitchEntity(SwitchDevice):
     async def async_turn_on(self, **kwargs):
         """ lock the georide tracker """
         _LOGGER.info('async_turn_on %s', kwargs)
-        success = GeorideApi.lock_tracker(self.token_callback(), self._tracker_id)
+        success = GeorideApi.lock_tracker(self._get_token_callback(), self._tracker_id)
         if success:
             self._is_on = True
             
     async def async_turn_off(self, **kwargs):
         """ unlock the georide tracker """
         _LOGGER.info('async_turn_off %s', kwargs)
-        success = GeorideApi.unlock_tracker(self.token_callback(), self._tracker_id)
+        success = GeorideApi.unlock_tracker(self._get_token_callback(), self._tracker_id)
         if success:
             self._is_on = False
 
     async def async_toggle(self, **kwargs):
         """ toggle lock the georide tracker """
         _LOGGER.info('async_toggle %s', kwargs)
-        self._is_on = GeorideApi.toogle_lock_tracker(self.token_callback(), self._tracker_id)
+        self._is_on = GeorideApi.toogle_lock_tracker(self._get_token_callback(),
+                                                     self._tracker_id)
 
     async def async_update(self):
         """ update the current tracker"""
         _LOGGER.info('async_update ')
+        return
 
 
     @property
@@ -83,6 +107,7 @@ class GeorideLockSwitchEntity(SwitchDevice):
     def name(self):
         """ Georide switch name """
         return self._name
+    
 
     @property
     def is_on(self):
@@ -90,9 +115,9 @@ class GeorideLockSwitchEntity(SwitchDevice):
         return self._is_on
     
     @property
-    def token_callback(self):
+    def get_token_callback(self):
         """ Georide switch token callback method """
-        return self._token_callback
+        return self._get_token_callback
     
     @property
     def icon(self):

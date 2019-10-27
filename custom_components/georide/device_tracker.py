@@ -81,7 +81,12 @@ class GeorideTrackerEntity(TrackerEntity):
     @property
     def location_accuracy(self):
         """ return the gps accuracy of georide (could not be aquired, then 10) """
-        return 10
+        return 20
+
+    @property
+    def icon(self):
+        return "mdi:map-marker"
+    
 
     @property
     def device_info(self):

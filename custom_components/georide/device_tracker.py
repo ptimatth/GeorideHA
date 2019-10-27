@@ -3,16 +3,10 @@
 import logging
 
 from homeassistant.core import callback
-from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
 from homeassistant.components.device_tracker.const import ENTITY_ID_FORMAT, SOURCE_TYPE_GPS
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 
 import georideapilib.api as GeorideApi
-
-from .const import (
-    CONF_TOKEN
-)
 
 from . import DOMAIN as GEORIDE_DOMAIN
 
@@ -27,11 +21,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     if georide_context.token is None:
         return False
 
-    _LOGGER.info('Current georide token: %s', georide_context.token)
+    _LOGGER.info('Current georide token: %s', georide_context.async_get_token())
 
-    """TODO: add here token expiration control"""
         
-    trackers = GeorideApi.get_trackers(georide_context.token)
+    trackers = GeorideApi.get_trackers(georide_context.async_get_token())
 
     
     tracker_entities = []
@@ -45,7 +38,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     return True
 
 
-class GeorideTrackerEntity(TrackerEntity, RestoreEntity):
+class GeorideTrackerEntity(TrackerEntity):
     """Represent a tracked device."""
 
     def __init__(self, tracker_id, name, data=None):
@@ -84,30 +77,21 @@ class GeorideTrackerEntity(TrackerEntity, RestoreEntity):
     def source_type(self):
         """Return the source type, eg gps or router, of the device."""
         return SOURCE_TYPE_GPS
+      
+    @property
+    def location_accuracy(self):
+        """ return the gps accuracy of georide (could not be aquired, then 10) """
+        return 10
 
     @property
     def device_info(self):
         """Return the device info."""
-        return {"name": self.name, "identifiers": {(GEORIDE_DOMAIN, self._tracker_id)}}
-
-    async def async_added_to_hass(self):
-        """Call when entity about to be added to Home Assistant."""
-        await super().async_added_to_hass()
-
-        # Don't restore if we got set up with data.
-        if self._data:
-            return
-
-        state = await self.async_get_last_state()
-
-        if state is None:
-            return
-
-        attr = state.attributes
-        self._data = {
-            "host_name": state.name,
-            "gps": (attr.get(ATTR_LATITUDE), attr.get(ATTR_LONGITUDE)),
+        return {
+            "name": self.name,
+            "identifiers": {(GEORIDE_DOMAIN, self._tracker_id)},
+            "manufacturer": "GeoRide"
         }
+
 
     @callback
     def update_data(self, data):

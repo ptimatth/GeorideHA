@@ -71,12 +71,17 @@ async def async_setup_entry(hass, entry):
 
     hass.data[DOMAIN]["context"] = context
     hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
+    hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "switch"))
+
+
 
     return True
 
 async def async_unload_entry(hass, entry):
     """Unload an Georide config entry."""
     await hass.config_entries.async_forward_entry_unload(entry, "device_tracker")
+    await hass.config_entries.async_forward_entry_unload(entry, "switch")
+
     hass.data[DOMAIN]["unsub"]()
 
     return True
@@ -117,30 +122,10 @@ class GeorideContext:
     def georide_trackers(self):
         """ georide tracker list """
         return self._georide_trackers
-    
+
+
     @callback
-    def async_see_beacons(self, hass, dev_id, kwargs_param):
-        """Set active beacons to the current location."""
-        kwargs = kwargs_param.copy()
-
-        # Mobile beacons should always be set to the location of the
-        # tracking device. I get the device state and make the necessary
-        # changes to kwargs.
-        device_tracker_state = hass.states.get(f"device_tracker.{dev_id}")
-
-        if device_tracker_state is not None:
-            lat = device_tracker_state.attributes.get("latitude")
-            lon = device_tracker_state.attributes.get("longitude")
-
-            if lat is not None and lon is not None:
-                kwargs["gps"] = (lat, lon)
-            else:
-                kwargs["gps"] = None
-
-        for tracker in self.georide_trackers[dev_id]:
-            kwargs["dev_id"] = f"{TRACKER_ID}_{tracker}"
-            kwargs["host_name"] = tracker
-    
-    
-    
+    def async_get_token(self):
+        """ here we return the current valid tocken, TODO: add here token expiration control"""
+        return self._token
 

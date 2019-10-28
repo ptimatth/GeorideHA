@@ -29,7 +29,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     
     tracker_entities = []
     for tracker in trackers:
-        entity = GeorideTrackerEntity(tracker.tracker_id, tracker.tracker_name, data=tracker)
+        entity = GeorideTrackerEntity(tracker.tracker_id, georide_context.async_get_token,
+                                      georide_context.async_get_tracker, tracker)
+
+
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = entity
         tracker_entities.append(entity)
 
@@ -41,11 +44,13 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 class GeorideTrackerEntity(TrackerEntity):
     """Represent a tracked device."""
 
-    def __init__(self, tracker_id, name, data=None):
+    def __init__(self, tracker_id, get_token_callback, get_tracker_callback, tracker):
         """Set up Georide entity."""
         self._tracker_id = tracker_id
-        self._name = name
-        self._data = data or {}
+        self._get_token_callback = get_token_callback
+        self._get_tracker_callback = get_tracker_callback
+        self._name = tracker.tracker_name
+        self._data = tracker or {}
         self.entity_id = ENTITY_ID_FORMAT.format(tracker_id)
 
     @property
@@ -62,7 +67,6 @@ class GeorideTrackerEntity(TrackerEntity):
         """Return latitude value of the device."""
         if self._data.latitude:
             return self._data.latitude
-
         return None
 
     @property
@@ -98,10 +102,26 @@ class GeorideTrackerEntity(TrackerEntity):
             "odometer": "{} km".format(self._data.odometer)
         }
 
+    @property
+    def get_tracker_callback(self):
+        """ get tracker callaback"""
+        return self._get_tracker_callback
+    
+    @property
+    def get_token_callback(self):
+        """ get token callaback"""
+        return self._get_token_callback
+    
 
-    @callback
-    def update_data(self, data):
-        """Mark the device as seen."""
-        self._data = data
-        self.async_write_ha_state()
+    @property
+    def should_poll(self):
+        """No polling needed."""
+        return True
 
+    async def async_update(self):
+        """ update the current tracker"""
+        _LOGGER.info('async_update ')
+        self._data = self._get_tracker_callback(self._tracker_id)
+        self._name = self._data.tracker_name
+        return
+        

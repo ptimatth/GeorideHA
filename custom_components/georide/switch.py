@@ -16,27 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up Georide tracker based off an entry."""
-
-    # @callback
-    # def _receive_data(dev_id, **data):
-    #     """Receive set location."""
-    #     _LOGGER.info("Datariceived from parrent")
-    # 
-    #     entity = hass.data[GEORIDE_DOMAIN]["devices"].get(dev_id)
-    # 
-    #     if entity is not None:
-    #         entity.update_data(data)
-    #         return
-    # 
-    #     entity = GeorideLockSwitchEntity(dev_id, georide_context.async_get_token, data)
-    #     hass.data[GEORIDE_DOMAIN]["devices"][dev_id] = entity
-    #     async_add_entities([entity])
-    # 
-    # hass.data[GEORIDE_DOMAIN]["context"].set_async_see(_receive_data)
-
-
-    georide_context = hass.data[GEORIDE_DOMAIN]["context"]
-        
+    georide_context = hass.data[GEORIDE_DOMAIN]["context"]      
 
     if georide_context.async_get_token() is None:
         return False
@@ -44,7 +24,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     _LOGGER.info('Current georide token: %s', georide_context.async_get_token())    
     trackers = GeorideApi.get_trackers(georide_context.async_get_token())
-
 
     lock_switch_entities = []
     for tracker in trackers:
@@ -94,6 +73,12 @@ class GeorideLockSwitchEntity(SwitchDevice):
         self._is_on = GeorideApi.toogle_lock_tracker(self._get_token_callback(),
                                                      self._tracker_id)
 
+
+    @property
+    def should_poll(self):
+        """No polling needed."""
+        return True
+
     async def async_update(self):
         """ update the current tracker"""
         _LOGGER.info('async_update ')
@@ -101,7 +86,6 @@ class GeorideLockSwitchEntity(SwitchDevice):
         self._name = self._data.tracker_name
         self._is_on = self._data.is_locked
         return
-
 
     @property
     def unique_id(self):
@@ -113,7 +97,6 @@ class GeorideLockSwitchEntity(SwitchDevice):
         """ Georide switch name """
         return self._name
     
-
     @property
     def is_on(self):
         """ Georide switch status """
@@ -124,6 +107,11 @@ class GeorideLockSwitchEntity(SwitchDevice):
         """ Georide switch token callback method """
         return self._get_token_callback
     
+    @property
+    def get_tracker_callback(self):
+        """ Georide switch token callback method """
+        return self._get_tracker_callback
+
     @property
     def icon(self):
         if self._is_on:
@@ -141,15 +129,3 @@ class GeorideLockSwitchEntity(SwitchDevice):
         }
 
 
-    @property
-    def should_poll(self):
-        """No polling needed."""
-        return True
-
-    @callback
-    def update_data(self, data):
-        """Mark the device as seen."""
-        self._data = data
-        self._name = data.tracker_name
-        self._is_on = data.is_locked
-        self.async_write_ha_state()

@@ -52,8 +52,6 @@ async def async_setup(hass, config):
 
     _LOGGER.info("Georide-setup ")
 
-
-
     # Return boolean to indicate that initialization was successful.
     return True
 
@@ -62,20 +60,14 @@ async def async_setup(hass, config):
 async def async_setup_entry(hass, entry):
     """Set up Georide entry."""
 
-
-
     def georide_update(event):
         """Update tracker info"""
         nonlocal hass
         _LOGGER.info('Georide update event %s', event)
-
         georide_context = hass.data[DOMAIN]["context"]
-
         token = georide_context.async_get_token()
         trackers = GeorideApi.get_trackers(token)
         georide_context.georide_trackers = trackers
-        hass.helpers.dispatcher.async_dispatcher_send(DOMAIN, hass, georide_context, json_response([]))
-
 
     ha_event.async_track_time_interval(hass, georide_update, timedelta(seconds=30))
 
@@ -98,11 +90,12 @@ async def async_setup_entry(hass, entry):
         account.auth_token
     )
 
+
     hass.data[DOMAIN]["context"] = context
 
-
-
-
+    # We add trackers to the context
+    trackers = GeorideApi.get_trackers(account.auth_token)
+    context.georide_trackers = trackers
 
     hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
     hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "switch"))
@@ -175,7 +168,6 @@ class GeorideContext:
             if tracker.tracker_id == tracker_id:
                 return tracker
         return None
-
 
     @callback
     def async_see(self, **data):

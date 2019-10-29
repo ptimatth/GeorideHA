@@ -4,7 +4,8 @@
   "config_flow": true,
   "documentation": "https://git.tontontux.fr/mduval/GeorideHA",
   "requirements": [
-    "georideapilib>=0.2.0"
+    "georideapilib>=0.4.1",
+    "pyjwt>=1.7.1"
   ],
   "dependencies": [],
   "codeowners": ["@ptimatth"]

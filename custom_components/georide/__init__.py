@@ -4,11 +4,14 @@ from collections import defaultdict
 import logging
 from datetime import timedelta
 import voluptuous as vol
-
+import json
+import jwt
+from threading import Thread
 
 from aiohttp.web import json_response
 from georideapilib.objects import GeorideAccount
 import georideapilib.api as GeorideApi
+from georideapilib.socket import GeorideSocket
 
 
 from homeassistant import config_entries
@@ -56,23 +59,21 @@ async def async_setup(hass, config):
     return True
 
 
+def connect_socket(hass, component):
+    """subscribe to georide socket"""
+    context = hass.data[DOMAIN]["context"]
+
+    socket = GeorideSocket()
+    socket.subscribe_locked(context.on_lock_callback)
+    socket.subscribe_device(context.on_device_callback)
+    socket.subscribe_position(context.on_position_callback)
+
+    socket.init()
+    socket.connect(context.async_get_token())
+
 
 async def async_setup_entry(hass, entry):
     """Set up Georide entry."""
-
-    def georide_update(event):
-        """Update tracker info"""
-        nonlocal hass
-        _LOGGER.info('Georide update event %s', event)
-        georide_context = hass.data[DOMAIN]["context"]
-        token = georide_context.async_get_token()
-        trackers = GeorideApi.get_trackers(token)
-        georide_context.georide_trackers = trackers
-
-    ha_event.async_track_time_interval(hass, georide_update, timedelta(seconds=30))
-
-
-
 
 
     config = hass.data[DOMAIN]["config"]
@@ -100,12 +101,15 @@ async def async_setup_entry(hass, entry):
     hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
     hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "switch"))
 
+    thread = Thread(target=connect_socket, args=(hass, entry))
+    thread.start()
 
 
     return True
 
 async def async_unload_entry(hass, entry):
     """Unload an Georide config entry."""
+
     await hass.config_entries.async_forward_entry_unload(entry, "device_tracker")
     await hass.config_entries.async_forward_entry_unload(entry, "switch")
 
@@ -154,16 +158,19 @@ class GeorideContext:
     @georide_trackers.setter
     def georide_trackers(self, trackers):
         """ georide tracker list """
-        self._georide_trackers = trackers
+        self._georide_trackers = trackers        
 
     @callback
     def async_get_token(self):
         """ here we return the current valid tocken, TODO: add here token expiration control"""
+        jwt_data = jwt.decode(self._token, verify=False)
+        exp_timestamp = jwt_data['exp']
+        _LOGGER.info("Token exp data: %s", exp_timestamp)
         return self._token
 
     @callback
     def async_get_tracker(self, tracker_id):
-        """ here we return the current valid tocken, TODO: add here token expiration control"""
+        """ here we return last tracker by id"""
         for tracker in self._georide_trackers:
             if tracker.tracker_id == tracker_id:
                 return tracker
@@ -174,3 +181,45 @@ class GeorideContext:
         """Send a see message to the device tracker."""
         _LOGGER.info("sync_see")
         self._pending_msg.append(data)
+
+    @callback
+    def on_lock_callback(self, data_string):
+        """on lock callback"""
+        _LOGGER.info("On lock received %s", data_string)
+        data = data_string
+        _LOGGER.info("On lock received %s", data['trackerId'])
+
+        for tracker in self._georide_trackers:
+
+            if tracker.tracker_id == data['trackerId']:
+                tracker.locked_latitude = data['lockedLatitude']
+                tracker.locked_longitude = data['lockedLongitude']
+                tracker.is_locked = data['isLocked']
+                return
+
+    @callback
+    def on_device_callback(self, data_string):
+        """on device callback"""
+        _LOGGER.info("On device received")
+        data = data_string.json()
+        for tracker in self._georide_trackers:
+            if tracker.tracker_id == data['trackerId']:
+                tracker.status = data['status']
+                return
+
+    @callback
+    def on_position_callback(self, data_string):
+        """on position callback"""
+        _LOGGER.info("On position received %s", data_string)
+        data = data_string.json()
+        for tracker in self._georide_trackers:
+            if tracker.tracker_id == data['trackerId']:
+                tracker.latitude = data['latitude']
+                tracker.longitude = data['longitude']
+                tracker.moving = data['moving']
+                tracker.speed = data['speed']
+                tracker.fixtime = data['fixtime']
+                return
+
+
+

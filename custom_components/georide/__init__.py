@@ -183,14 +183,10 @@ class GeorideContext:
         self._pending_msg.append(data)
 
     @callback
-    def on_lock_callback(self, data_string):
+    def on_lock_callback(self, data):
         """on lock callback"""
-        _LOGGER.info("On lock received %s", data_string)
-        data = data_string
-        _LOGGER.info("On lock received %s", data['trackerId'])
-
+        _LOGGER.info("On lock received")
         for tracker in self._georide_trackers:
-
             if tracker.tracker_id == data['trackerId']:
                 tracker.locked_latitude = data['lockedLatitude']
                 tracker.locked_longitude = data['lockedLongitude']
@@ -198,20 +194,18 @@ class GeorideContext:
                 return
 
     @callback
-    def on_device_callback(self, data_string):
+    def on_device_callback(self, data):
         """on device callback"""
         _LOGGER.info("On device received")
-        data = data_string.json()
         for tracker in self._georide_trackers:
             if tracker.tracker_id == data['trackerId']:
                 tracker.status = data['status']
                 return
 
     @callback
-    def on_position_callback(self, data_string):
+    def on_position_callback(self, data):
         """on position callback"""
-        _LOGGER.info("On position received %s", data_string)
-        data = data_string.json()
+        _LOGGER.info("On position received")
         for tracker in self._georide_trackers:
             if tracker.tracker_id == data['trackerId']:
                 tracker.latitude = data['latitude']

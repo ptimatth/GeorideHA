@@ -53,39 +53,37 @@ class GeorideLockSwitchEntity(SwitchDevice):
         self._state = {}
 
 
-    async def async_turn_on(self, **kwargs):
+    def turn_on(self, **kwargs):
         """ lock the georide tracker """
         _LOGGER.info('async_turn_on %s', kwargs)
         success = GeorideApi.lock_tracker(self._get_token_callback(), self._tracker_id)
         if success:
+            self._data.is_locked = True
             self._is_on = True
             
-    async def async_turn_off(self, **kwargs):
+    def turn_off(self, **kwargs):
         """ unlock the georide tracker """
         _LOGGER.info('async_turn_off %s', kwargs)
         success = GeorideApi.unlock_tracker(self._get_token_callback(), self._tracker_id)
         if success:
+            self._data.is_locked = False
             self._is_on = False
 
     async def async_toggle(self, **kwargs):
         """ toggle lock the georide tracker """
         _LOGGER.info('async_toggle %s', kwargs)
-        self._is_on = GeorideApi.toogle_lock_tracker(self._get_token_callback(),
-                                                     self._tracker_id)
+        result = GeorideApi.toogle_lock_tracker(self._get_token_callback(),
+                                                self._tracker_id)
+        self._data.is_locked = result
+        self._is_on = result     
 
 
-    @property
-    def should_poll(self):
-        """No polling needed."""
-        return True
-
-    async def async_update(self):
+    def update(self):
         """ update the current tracker"""
         _LOGGER.info('async_update ')
         self._data = self._get_tracker_callback(self._tracker_id)
         self._name = self._data.tracker_name
         self._is_on = self._data.is_locked
-        return
 
     @property
     def unique_id(self):

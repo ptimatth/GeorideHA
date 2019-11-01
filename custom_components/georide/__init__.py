@@ -47,13 +47,11 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup(hass, config):
     """Setup  Georide component."""
     hass.data[DOMAIN] = {"config": config[DOMAIN], "devices": {}, "unsub": None}
-    hass.async_create_task(
-        hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data={}
-        )
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data={}
     )
 
-    _LOGGER.info("Georide-setup ")
+    _LOGGER.info("Georide-setup success: %s", result)
 
     # Return boolean to indicate that initialization was successful.
     return True
@@ -74,37 +72,37 @@ def connect_socket(hass, component):
 
 async def async_setup_entry(hass, entry):
     """Set up Georide entry."""
-
-
     config = hass.data[DOMAIN]["config"]
     email = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
     password = config.get(CONF_PASSWORD) or entry.data[CONF_PASSWORD]
 
     if email is None or password is None:
         return False
-
-    account = GeorideApi.get_authorisation_token(email, password)
-    context = GeorideContext(
-        hass,
-        email,
-        password,
-        account.auth_token
-    )
-
-
-    hass.data[DOMAIN]["context"] = context
-
-    # We add trackers to the context
-    trackers = GeorideApi.get_trackers(account.auth_token)
-    context.georide_trackers = trackers
-
-    hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
-    hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, "switch"))
-
-    thread = Thread(target=connect_socket, args=(hass, entry))
-    thread.start()
+    try:
+        account = GeorideApi.get_authorisation_token(email, password)
+        context = GeorideContext(
+            hass,
+            email,
+            password,
+            account.auth_token
+        )
 
 
+        hass.data[DOMAIN]["context"] = context
+
+        # We add trackers to the context
+        trackers = GeorideApi.get_trackers(account.auth_token)
+        context.georide_trackers = trackers
+
+        hass.async_create_task(
+            hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
+        hass.async_create_task(
+            hass.config_entries.async_forward_entry_setup(entry, "switch"))
+
+        thread = Thread(target=connect_socket, args=(hass, entry))
+        thread.start()
+    except:
+        return False
     return True
 
 async def async_unload_entry(hass, entry):

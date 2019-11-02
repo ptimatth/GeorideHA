@@ -2,13 +2,12 @@
 
 import logging
 
-from homeassistant.core import callback
 from homeassistant.components.device_tracker.const import ENTITY_ID_FORMAT, SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 
 import georideapilib.api as GeorideApi
 
-from . import DOMAIN as GEORIDE_DOMAIN
+from .const import DOMAIN as GEORIDE_DOMAIN
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -18,19 +17,19 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]
         
-    if georide_context.token is None:
+    if georide_context.get_token() is None:
         return False
 
-    _LOGGER.info('Current georide token: %s', georide_context.async_get_token())
+    _LOGGER.info('Current georide token: %s', georide_context.get_token())
 
         
-    trackers = GeorideApi.get_trackers(georide_context.async_get_token())
+    trackers = GeorideApi.get_trackers(georide_context.get_token())
 
     
     tracker_entities = []
     for tracker in trackers:
-        entity = GeorideTrackerEntity(tracker.tracker_id, georide_context.async_get_token,
-                                      georide_context.async_get_tracker, tracker)
+        entity = GeorideTrackerEntity(tracker.tracker_id, georide_context.get_token,
+                                      georide_context.get_tracker, tracker)
 
 
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = entity
@@ -120,7 +119,6 @@ class GeorideTrackerEntity(TrackerEntity):
 
     async def async_update(self):
         """ update the current tracker"""
-        _LOGGER.info('async_update ')
         self._data = self._get_tracker_callback(self._tracker_id)
         self._name = self._data.tracker_name
         return

@@ -3,14 +3,17 @@ from collections import defaultdict
 
 import logging
 from datetime import timedelta
-import voluptuous as vol
+import math
+import time
 import json
-import jwt
 from threading import Thread
+import voluptuous as vol
+import jwt
 
 from aiohttp.web import json_response
 from georideapilib.objects import GeorideAccount
 import georideapilib.api as GeorideApi
+
 from georideapilib.socket import GeorideSocket
 
 
@@ -25,10 +28,12 @@ from homeassistant.setup import async_when_setup
 from .const import (
     CONF_EMAIL,
     CONF_PASSWORD,
-    TRACKER_ID
+    CONF_TOKEN,
+    TRACKER_ID,
+    TOKEN_SAFE_DAY,
+    DOMAIN
 )
 
-DOMAIN = "georide"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,11 +52,15 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup(hass, config):
     """Setup  Georide component."""
     hass.data[DOMAIN] = {"config": config[DOMAIN], "devices": {}, "unsub": None}
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data={}
+    hass.async_create_task(
+        hass.config_entries.flow.async_init(
+            DOMAIN, 
+            context={
+                "source": config_entries.SOURCE_IMPORT
+            },
+            data={}
+        )
     )
-
-    _LOGGER.info("Georide-setup success: %s", result)
 
     # Return boolean to indicate that initialization was successful.
     return True
@@ -66,6 +75,8 @@ def connect_socket(hass, component):
     socket.subscribe_device(context.on_device_callback)
     socket.subscribe_position(context.on_position_callback)
 
+    context.socket = socket
+
     socket.init()
     socket.connect(context.async_get_token())
 
@@ -75,34 +86,32 @@ async def async_setup_entry(hass, entry):
     config = hass.data[DOMAIN]["config"]
     email = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
     password = config.get(CONF_PASSWORD) or entry.data[CONF_PASSWORD]
-
-    if email is None or password is None:
-        return False
-    try:
-        account = GeorideApi.get_authorisation_token(email, password)
-        context = GeorideContext(
-            hass,
-            email,
-            password,
-            account.auth_token
-        )
+    token = config.get(CONF_TOKEN) or entry.data[CONF_TOKEN]
+    context = GeorideContext(
+        hass,
+        email,
+        password,
+        token
+    )
 
 
-        hass.data[DOMAIN]["context"] = context
+    hass.data[DOMAIN]["context"] = context
 
-        # We add trackers to the context
-        trackers = GeorideApi.get_trackers(account.auth_token)
-        context.georide_trackers = trackers
+    # We add trackers to the context
+    trackers = GeorideApi.get_trackers(token)
+    context.georide_trackers = trackers
 
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, "switch"))
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "switch"))
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "sensor"))
 
-        thread = Thread(target=connect_socket, args=(hass, entry))
-        thread.start()
-    except:
-        return False
+    thread = Thread(target=connect_socket, args=(hass, entry))
+    thread.start()
+
+
     return True
 
 async def async_unload_entry(hass, entry):
@@ -110,6 +119,10 @@ async def async_unload_entry(hass, entry):
 
     await hass.config_entries.async_forward_entry_unload(entry, "device_tracker")
     await hass.config_entries.async_forward_entry_unload(entry, "switch")
+    await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+
+    context = hass.data[DOMAIN]["context"]
+    context.socket.disconnect()
 
     hass.data[DOMAIN]["unsub"]()
 
@@ -126,7 +139,7 @@ class GeorideContext:
         self._password = password
         self._georide_trackers = defaultdict(set)
         self._token = token
-        self._pending_msg = []
+        self._socket = None
 
     @property
     def hass(self):
@@ -156,29 +169,43 @@ class GeorideContext:
     @georide_trackers.setter
     def georide_trackers(self, trackers):
         """ georide tracker list """
-        self._georide_trackers = trackers        
+        self._georide_trackers = trackers    
 
-    @callback
-    def async_get_token(self):
-        """ here we return the current valid tocken, TODO: add here token expiration control"""
+    def get_token(self):
+        """ here we return the current valid tocken """
         jwt_data = jwt.decode(self._token, verify=False)
         exp_timestamp = jwt_data['exp']
+
+        epoch = math.ceil(time.time())
+
+        if (exp_timestamp - TOKEN_SAFE_DAY) < epoch:
+            _LOGGER.info("Time reached, renew token")
+            account = GeorideApi.get_authorisation_token(self._email, self._password)
+            config = self._hass.data[DOMAIN]["config"]
+            config[CONF_TOKEN] = account.auth_token
+            self._token = account.auth_token
+
+
         _LOGGER.info("Token exp data: %s", exp_timestamp)
         return self._token
 
-    @callback
-    def async_get_tracker(self, tracker_id):
+    def get_tracker(self, tracker_id):
         """ here we return last tracker by id"""
         for tracker in self._georide_trackers:
             if tracker.tracker_id == tracker_id:
                 return tracker
         return None
 
-    @callback
-    def async_see(self, **data):
-        """Send a see message to the device tracker."""
-        _LOGGER.info("sync_see")
-        self._pending_msg.append(data)
+    @property
+    def socket(self):
+        """ hold the georide socket """
+        return self._socket
+    
+    @socket.setter
+    def socket(self, socket):
+        """set the georide socket"""
+        self._socket = socket
+
 
     @callback
     def on_lock_callback(self, data):

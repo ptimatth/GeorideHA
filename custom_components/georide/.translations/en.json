@@ -2,19 +2,21 @@
   "config": {
     "title": "GeoRide",
     "step": {
-      "user": {
+      "georide_login": {
         "title": "Set up GeoRide",
-        "description": "Are you sure you want to set up GeoRide ?",
+        "description": "Sign-in to georide",
         "data": {
           "email": "email",
           "password": "password"
         }
       }
     },
+    "error": {
+      "faulty_credentials": "Authorization failed",
+      "unknown": "Unknown error"
+    },
     "abort": {
-      "one_instance_allowed": "Only a single instance is allowed.",
-      "no_credential": "You need to add your credentails."
-
+      "one_instance_allowed": "Only a single instance is allowed."
     },
     "create_entry": {
       "default": "\n\nLogin succes"

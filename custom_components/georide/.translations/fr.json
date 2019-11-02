@@ -1,0 +1,25 @@
+{
+  "config": {
+    "title": "GeoRide",
+    "step": {
+      "georide_login": {
+        "title": "Configuration de GeoRide",
+        "description": "T'es un mortard ! V",
+        "data": {
+          "email": "email",
+          "password": "password"
+        }
+      }
+    },
+    "error": {
+      "faulty_credentials": "Connexion \u00e9chou\u00e9",
+      "unkonwn": "Erreur inconue"
+    },
+    "abort": {
+      "one_instance_allowed": "Seulement un instance est authoris\u00e9e"
+    },
+    "create_entry": {
+      "default": "\n\nConnexion r\u00e9ussie!"
+    }
+  }
+}

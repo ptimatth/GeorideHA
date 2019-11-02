@@ -3,5 +3,6 @@
   "content_in_root": false,
   "render_readme": true,
   "domains": ["devices_tracker", "sensor"],
-  "country": ["FR"]
+  "country": ["FR"],
+  "homeassistant": "0.100.0"
 }

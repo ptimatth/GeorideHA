@@ -8,7 +8,7 @@ from homeassistant.components.switch import ENTITY_ID_FORMAT
 
 import georideapilib.api as GeorideApi
 
-from . import DOMAIN as GEORIDE_DOMAIN
+from .const import DOMAIN as GEORIDE_DOMAIN
 
 
 _LOGGER = logging.getLogger(__name__) 
@@ -18,17 +18,17 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     """Set up Georide tracker based off an entry."""
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]      
 
-    if georide_context.async_get_token() is None:
+    if georide_context.get_token() is None:
         return False
 
 
-    _LOGGER.info('Current georide token: %s', georide_context.async_get_token())    
-    trackers = GeorideApi.get_trackers(georide_context.async_get_token())
+    _LOGGER.info('Current georide token: %s', georide_context.get_token())    
+    trackers = GeorideApi.get_trackers(georide_context.get_token())
 
     lock_switch_entities = []
     for tracker in trackers:
-        entity = GeorideLockSwitchEntity(tracker.tracker_id, georide_context.async_get_token,
-                                         georide_context.async_get_tracker, data=tracker)
+        entity = GeorideLockSwitchEntity(tracker.tracker_id, georide_context.get_token,
+                                         georide_context.get_tracker, data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = entity
         lock_switch_entities.append(entity)
 

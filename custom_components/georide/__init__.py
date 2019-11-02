@@ -87,8 +87,6 @@ async def async_setup_entry(hass, entry):
     email = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
     password = config.get(CONF_PASSWORD) or entry.data[CONF_PASSWORD]
     token = config.get(CONF_TOKEN) or entry.data[CONF_TOKEN]
-
-    _LOGGER.info("Georide token: %s",token)
     context = GeorideContext(
         hass,
         email,
@@ -107,6 +105,8 @@ async def async_setup_entry(hass, entry):
         hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "switch"))
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "sensor"))
 
     thread = Thread(target=connect_socket, args=(hass, entry))
     thread.start()
@@ -119,6 +119,8 @@ async def async_unload_entry(hass, entry):
 
     await hass.config_entries.async_forward_entry_unload(entry, "device_tracker")
     await hass.config_entries.async_forward_entry_unload(entry, "switch")
+    await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+
     context = hass.data[DOMAIN]["context"]
     context.socket.disconnect()
 

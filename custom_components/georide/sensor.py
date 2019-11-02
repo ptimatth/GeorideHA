@@ -1,4 +1,4 @@
-""" device tracker for Georide object """
+""" odometter sensor for Georide object """
 
 import logging
 
@@ -21,24 +21,20 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     if georide_context.get_token() is None:
         return False
 
-
-    _LOGGER.info('Current georide token: %s', georide_context.get_token())    
     trackers = GeorideApi.get_trackers(georide_context.get_token())
 
-    lock_switch_entities = []
+    odometer_switch_entities = []
     for tracker in trackers:
-        entity = GeorideLockSwitchEntity(tracker.tracker_id, georide_context.get_token,
-                                         georide_context.get_tracker, data=tracker)
+        entity = GeorideOdometerSensorEntity(tracker.tracker_id, georide_context.get_token,
+                                             georide_context.get_tracker, data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = entity
-        lock_switch_entities.append(entity)
+        odometer_switch_entities.append(entity)
 
-    async_add_entities(lock_switch_entities)
+    async_add_entities(odometer_switch_entities)
 
     return True
 
-
-
-class GeorideLockSwitchEntity(SwitchDevice):
+class GeorideOdometerSensorEntity(SwitchDevice):
     """Represent a tracked device."""
 
     def __init__(self, tracker_id, get_token_callback, get_tracker_callback, data):
@@ -48,34 +44,10 @@ class GeorideLockSwitchEntity(SwitchDevice):
         self._get_token_callback = get_token_callback
         self._get_tracker_callback = get_tracker_callback
         self._name = data.tracker_name
-        self._is_on = data.is_locked
-        self.entity_id = ENTITY_ID_FORMAT.format("lock") +"." + str(tracker_id)
-        self._state = {}
+        self._unit_of_measurement = "m"
 
-
-    def turn_on(self, **kwargs):
-        """ lock the georide tracker """
-        _LOGGER.info('async_turn_on %s', kwargs)
-        success = GeorideApi.lock_tracker(self._get_token_callback(), self._tracker_id)
-        if success:
-            self._data.is_locked = True
-            self._is_on = True
-            
-    def turn_off(self, **kwargs):
-        """ unlock the georide tracker """
-        _LOGGER.info('async_turn_off %s', kwargs)
-        success = GeorideApi.unlock_tracker(self._get_token_callback(), self._tracker_id)
-        if success:
-            self._data.is_locked = False
-            self._is_on = False
-
-    async def async_toggle(self, **kwargs):
-        """ toggle lock the georide tracker """
-        _LOGGER.info('async_toggle %s', kwargs)
-        result = GeorideApi.toogle_lock_tracker(self._get_token_callback(),
-                                                self._tracker_id)
-        self._data.is_locked = result
-        self._is_on = result     
+        self.entity_id = ENTITY_ID_FORMAT.format("odometer") + "." + str(tracker_id)
+        self._state = 0
 
 
     def update(self):
@@ -83,7 +55,7 @@ class GeorideLockSwitchEntity(SwitchDevice):
         _LOGGER.info('async_update ')
         self._data = self._get_tracker_callback(self._tracker_id)
         self._name = self._data.tracker_name
-        self._is_on = self._data.is_locked
+        self._state = self._data.odometer
 
     @property
     def unique_id(self):
@@ -94,11 +66,14 @@ class GeorideLockSwitchEntity(SwitchDevice):
     def name(self):
         """ Georide switch name """
         return self._name
-    
+
     @property
-    def is_on(self):
-        """ Georide switch status """
-        return self._is_on
+    def state(self):
+        return self._state
+
+    @property
+    def unit_of_measurement(self):
+        return self._unit_of_measurement
     
     @property
     def get_token_callback(self):
@@ -112,9 +87,7 @@ class GeorideLockSwitchEntity(SwitchDevice):
 
     @property
     def icon(self):
-        if self._is_on:
-            return "mdi:lock"
-        return "mdi:lock-open"
+        return "mdi:counter"
     
 
     @property

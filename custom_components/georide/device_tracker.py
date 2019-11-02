@@ -119,7 +119,6 @@ class GeorideTrackerEntity(TrackerEntity):
 
     async def async_update(self):
         """ update the current tracker"""
-        _LOGGER.info('async_update ')
         self._data = self._get_tracker_callback(self._tracker_id)
         self._name = self._data.tracker_name
         return

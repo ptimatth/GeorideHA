@@ -117,9 +117,9 @@ class GeorideTrackerEntity(TrackerEntity):
         """No polling needed."""
         return True
 
-    async def async_update(self):
+    def update(self):
         """ update the current tracker"""
+        _LOGGER.info('update')
         self._data = self._get_tracker_callback(self._tracker_id)
         self._name = self._data.tracker_name
-        return
         

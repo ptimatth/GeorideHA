@@ -62,23 +62,11 @@ async def async_setup(hass, config):
         )
     )
 
+    
+
+
     # Return boolean to indicate that initialization was successful.
     return True
-
-
-def connect_socket(hass, component):
-    """subscribe to georide socket"""
-    context = hass.data[DOMAIN]["context"]
-
-    socket = GeorideSocket()
-    socket.subscribe_locked(context.on_lock_callback)
-    socket.subscribe_device(context.on_device_callback)
-    socket.subscribe_position(context.on_position_callback)
-
-    context.socket = socket
-
-    socket.init()
-    socket.connect(context.async_get_token())
 
 
 async def async_setup_entry(hass, entry):
@@ -93,17 +81,15 @@ async def async_setup_entry(hass, entry):
         password,
         token
     )
-
+    
+    _LOGGER.info("Context-setup and start the thread")
+    _LOGGER.info("Thread started")
 
     hass.data[DOMAIN]["context"] = context
 
     # We add trackers to the context
     trackers = GeorideApi.get_trackers(token)
     context.georide_trackers = trackers
-
-    
-    thread = Thread(target=connect_socket, args=(hass, entry))
-    thread.start()
 
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
@@ -112,9 +98,8 @@ async def async_setup_entry(hass, entry):
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "sensor"))
 
-
-
     return True
+
 
 async def async_unload_entry(hass, entry):
     """Unload an Georide config entry."""
@@ -130,6 +115,19 @@ async def async_unload_entry(hass, entry):
 
     return True
 
+def connect_socket(context):
+    """subscribe to georide socket"""
+    _LOGGER.info("Georide socket connexion")
+    socket = GeorideSocket()
+    socket.subscribe_locked(context.on_lock_callback)
+    socket.subscribe_device(context.on_device_callback)
+    socket.subscribe_position(context.on_position_callback)
+
+    context.socket = socket
+
+    socket.init()
+    socket.connect(context.get_token())
+
 
 class GeorideContext:
     """Hold the current Georide context."""
@@ -142,6 +140,7 @@ class GeorideContext:
         self._georide_trackers = defaultdict(set)
         self._token = token
         self._socket = None
+        self._thread_started = False
 
     @property
     def hass(self):
@@ -193,6 +192,11 @@ class GeorideContext:
 
     def get_tracker(self, tracker_id):
         """ here we return last tracker by id"""
+        if not self._thread_started:
+            _LOGGER.info("Satr the thread")
+            self._hass.async_add_executor_job(connect_socket, self)
+            self._thread_started = True
+
         for tracker in self._georide_trackers:
             if tracker.tracker_id == tracker_id:
                 return tracker
@@ -207,7 +211,6 @@ class GeorideContext:
     def socket(self, socket):
         """set the georide socket"""
         self._socket = socket
-
 
     @callback
     def on_lock_callback(self, data):

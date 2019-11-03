@@ -101,6 +101,10 @@ async def async_setup_entry(hass, entry):
     trackers = GeorideApi.get_trackers(token)
     context.georide_trackers = trackers
 
+    
+    thread = Thread(target=connect_socket, args=(hass, entry))
+    thread.start()
+
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
     hass.async_create_task(
@@ -108,8 +112,6 @@ async def async_setup_entry(hass, entry):
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "sensor"))
 
-    thread = Thread(target=connect_socket, args=(hass, entry))
-    thread.start()
 
 
     return True

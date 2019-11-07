@@ -62,9 +62,6 @@ async def async_setup(hass, config):
         )
     )
 
-    
-
-
     # Return boolean to indicate that initialization was successful.
     return True
 
@@ -88,8 +85,7 @@ async def async_setup_entry(hass, entry):
     hass.data[DOMAIN]["context"] = context
 
     # We add trackers to the context
-    trackers = GeorideApi.get_trackers(token)
-    context.georide_trackers = trackers
+    context.refresh_trackers()
 
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
@@ -193,14 +189,23 @@ class GeorideContext:
     def get_tracker(self, tracker_id):
         """ here we return last tracker by id"""
         if not self._thread_started:
-            _LOGGER.info("Satr the thread")
+            _LOGGER.info("Start the thread")
             self._hass.async_add_executor_job(connect_socket, self)
+            # We refresh the tracker list each hours
+            ha_event.async_track_time_interval(
+                self._hass, self.refresh_trackers(), timedelta(hours=1))
             self._thread_started = True
 
         for tracker in self._georide_trackers:
             if tracker.tracker_id == tracker_id:
                 return tracker
         return None
+
+    def refresh_trackers(self):
+        """Used to refresh the tracker list"""
+        _LOGGER.info("Tracker list refresh")
+        self._georide_trackers = GeorideApi.get_trackers(self.get_token())
+
 
     @property
     def socket(self):

@@ -1,5 +1,5 @@
 # Georide Home assistant
-![Logo Georide](./georide-logo.png)
+![Logo Georide](/georide-logo.png)
 
 ⚠️ This is not an official implementation
 

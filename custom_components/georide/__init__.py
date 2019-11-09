@@ -31,6 +31,7 @@ from .const import (
     CONF_TOKEN,
     TRACKER_ID,
     TOKEN_SAFE_DAY,
+    MIN_UNTIL_REFRESH,
     DOMAIN
 )
 
@@ -137,7 +138,7 @@ class GeorideContext:
         self._token = token
         self._socket = None
         self._thread_started = False
-
+        self._previous_refresh = math.floor(time.time()/60)
     @property
     def hass(self):
         """ hass """
@@ -174,7 +175,6 @@ class GeorideContext:
         exp_timestamp = jwt_data['exp']
 
         epoch = math.ceil(time.time())
-
         if (exp_timestamp - TOKEN_SAFE_DAY) < epoch:
             _LOGGER.info("Time reached, renew token")
             account = GeorideApi.get_authorisation_token(self._email, self._password)
@@ -188,12 +188,16 @@ class GeorideContext:
 
     def get_tracker(self, tracker_id):
         """ here we return last tracker by id"""
+        epoch_min = math.floor(time.time()/60)
+        if (epoch_min % MIN_UNTIL_REFRESH) == 0:
+            if epoch_min != self._previous_refresh:
+                self._previous_refresh = epoch_min
+                self.refresh_trackers()
+
         if not self._thread_started:
             _LOGGER.info("Start the thread")
             self._hass.async_add_executor_job(connect_socket, self)
             # We refresh the tracker list each hours
-            ha_event.async_track_time_interval(
-                self._hass, self.refresh_trackers(), timedelta(hours=1))
             self._thread_started = True
 
         for tracker in self._georide_trackers:

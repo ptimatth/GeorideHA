@@ -31,6 +31,7 @@ from .const import (
     CONF_TOKEN,
     TRACKER_ID,
     TOKEN_SAFE_DAY,
+    MIN_UNTIL_REFRESH,
     DOMAIN
 )
 
@@ -62,9 +63,6 @@ async def async_setup(hass, config):
         )
     )
 
-    
-
-
     # Return boolean to indicate that initialization was successful.
     return True
 
@@ -88,8 +86,7 @@ async def async_setup_entry(hass, entry):
     hass.data[DOMAIN]["context"] = context
 
     # We add trackers to the context
-    trackers = GeorideApi.get_trackers(token)
-    context.georide_trackers = trackers
+    context.refresh_trackers()
 
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
@@ -141,7 +138,7 @@ class GeorideContext:
         self._token = token
         self._socket = None
         self._thread_started = False
-
+        self._previous_refresh = math.floor(time.time()/60)
     @property
     def hass(self):
         """ hass """
@@ -178,7 +175,6 @@ class GeorideContext:
         exp_timestamp = jwt_data['exp']
 
         epoch = math.ceil(time.time())
-
         if (exp_timestamp - TOKEN_SAFE_DAY) < epoch:
             _LOGGER.info("Time reached, renew token")
             account = GeorideApi.get_authorisation_token(self._email, self._password)
@@ -192,15 +188,28 @@ class GeorideContext:
 
     def get_tracker(self, tracker_id):
         """ here we return last tracker by id"""
+        epoch_min = math.floor(time.time()/60)
+        if (epoch_min % MIN_UNTIL_REFRESH) == 0:
+            if epoch_min != self._previous_refresh:
+                self._previous_refresh = epoch_min
+                self.refresh_trackers()
+
         if not self._thread_started:
-            _LOGGER.info("Satr the thread")
+            _LOGGER.info("Start the thread")
             self._hass.async_add_executor_job(connect_socket, self)
+            # We refresh the tracker list each hours
             self._thread_started = True
 
         for tracker in self._georide_trackers:
             if tracker.tracker_id == tracker_id:
                 return tracker
         return None
+
+    def refresh_trackers(self):
+        """Used to refresh the tracker list"""
+        _LOGGER.info("Tracker list refresh")
+        self._georide_trackers = GeorideApi.get_trackers(self.get_token())
+
 
     @property
     def socket(self):

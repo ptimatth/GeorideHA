@@ -41,27 +41,32 @@ class GeorideConfigFlow(config_entries.ConfigFlow):
 
     async def async_step_georide_login(self, user_input):
         """ try to seupt GeoRide Account """
-        errors = {}
+
+        schema = vol.Schema({
+            vol.Required(CONF_EMAIL): vol.All(str, vol.Length(min=3)),
+            vol.Required(CONF_PASSWORD): vol.All(str)
+        })
+        
+        if user_input is None:
+            return self.async_show_form(step_id='georide_login', data_schema=schema)
+        
+        email = user_input[CONF_EMAIL]
+        password = user_input[CONF_PASSWORD]
+        
         try:
-            account = GeorideApi.get_authorisation_token(
-                user_input[CONF_EMAIL],
-                user_input[CONF_PASSWORD])
-            return self.async_create_entry(
-                title=user_input[CONF_EMAIL],
-                data={
-                    CONF_EMAIL: user_input[CONF_EMAIL],
-                    CONF_PASSWORD: user_input[CONF_PASSWORD],
-                    CONF_TOKEN: account.auth_token
-                }
-            )
+            account = GeorideApi.get_authorisation_token(email, password)
+            data = {
+                CONF_EMAIL: email,
+                CONF_PASSWORD: password,
+                CONF_TOKEN: account.auth_token
+            }
+            return self.async_create_entry(title=email, data=data)
         except (GeorideException.SeverException, GeorideException.LoginException):
             _LOGGER.error("Invalid credentials provided, config not created")
-            errors["base"] = "faulty_credentials"
-            return self.async_show_form(step_id="georide_login", errors=errors)
+            errors = {"base":  "faulty_credentials"}
+            return self.async_show_form(step_id="georide_login", data_schema=schema, errors=errors)
         except: 
             _LOGGER.error("Unknown error")
-            errors["base"] = "faulty_credentials"
-            return self.async_show_form(step_id="georide_login", errors=errors)
-
-        
+            errors = {"base": "unkonwn"}
+            return self.async_show_form(step_id="georide_login", data_schema=schema, errors=errors)
         

@@ -16,10 +16,10 @@
       "unknown": "Unknown error"
     },
     "abort": {
-      "one_instance_allowed": "Only a single instance is allowed."
+      "one_instance_allowed": "Only one instance is allowed."
     },
     "create_entry": {
-      "default": "\n\nLogin succes"
+      "default": "\n\nLogin success"
     }
   }
 }

@@ -2,7 +2,7 @@
 
 import logging
 
-from homeassistant.components.device_tracker.const import ENTITY_ID_FORMAT, SOURCE_TYPE_GPS
+from homeassistant.components.device_tracker.const import DOMAIN, SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 
 import georideapilib.api as GeorideApi
@@ -50,7 +50,7 @@ class GeorideTrackerEntity(TrackerEntity):
         self._get_tracker_callback = get_tracker_callback
         self._name = tracker.tracker_name
         self._data = tracker or {}
-        self.entity_id = ENTITY_ID_FORMAT.format(tracker_id)
+        self.entity_id = DOMAIN + ".{}".format(tracker_id)
 
     @property
     def unique_id(self):

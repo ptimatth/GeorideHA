@@ -3,7 +3,7 @@
 import logging
 
 from homeassistant.core import callback
-from homeassistant.components.switch import SwitchDevice
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.components.switch import ENTITY_ID_FORMAT
 
 import georideapilib.api as GeorideApi
@@ -38,7 +38,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
 
 
-class GeorideLockSwitchEntity(SwitchDevice):
+class GeorideLockSwitchEntity(SwitchEntity):
     """Represent a tracked device."""
 
     def __init__(self, tracker_id, get_token_callback, get_tracker_callback, data):

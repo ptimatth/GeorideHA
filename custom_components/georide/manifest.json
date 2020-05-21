@@ -2,11 +2,11 @@
   "domain": "georide",
   "name": "Georide",
   "config_flow": true,
-  "documentation": "https://git.tontontux.fr/mduval/GeorideHA",
+  "documentation": "https://github.com/ptimatth/GeorideHA",
   "requirements": [
     "georideapilib>=0.4.4",
     "pyjwt>=1.7.1"
   ],
   "dependencies": [],
-  "codeowners": ["@ptimatth"]
+  "codeowners": ["ptimatth"]
 }

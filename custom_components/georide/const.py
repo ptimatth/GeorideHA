@@ -1,4 +1,4 @@
-""" Georide const file """
+""" GeoRide const file """
 DOMAIN = "georide"
 
 CONF_EMAIL = "email"

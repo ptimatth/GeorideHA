@@ -11,11 +11,10 @@ import voluptuous as vol
 import jwt
 
 from aiohttp.web import json_response
-from georideapilib.objects import GeorideAccount
-import georideapilib.api as GeorideApi
+from georideapilib.objects import GeorideAccount as GeoRideAccount
+import georideapilib.api as GeoRideApi
 
-from georideapilib.socket import GeorideSocket
-
+from georideapilib.socket import GeorideSocket as GeoRideSocket
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_WEBHOOK_ID
@@ -51,7 +50,7 @@ CONFIG_SCHEMA = vol.Schema(
 
 
 async def async_setup(hass, config):
-    """Setup  Georide component."""
+    """Setup  GeoRide component."""
     hass.data[DOMAIN] = {"config": config[DOMAIN], "devices": {}, "unsub": None}
     hass.async_create_task(
         hass.config_entries.flow.async_init(
@@ -68,12 +67,12 @@ async def async_setup(hass, config):
 
 
 async def async_setup_entry(hass, entry):
-    """Set up Georide entry."""
+    """Set up GeoRide entry."""
     config = hass.data[DOMAIN]["config"]
     email = config.get(CONF_EMAIL) or entry.data[CONF_EMAIL]
     password = config.get(CONF_PASSWORD) or entry.data[CONF_PASSWORD]
     token = config.get(CONF_TOKEN) or entry.data[CONF_TOKEN]
-    context = GeorideContext(
+    context = GeoRideContext(
         hass,
         email,
         password,
@@ -99,7 +98,7 @@ async def async_setup_entry(hass, entry):
 
 
 async def async_unload_entry(hass, entry):
-    """Unload an Georide config entry."""
+    """Unload an GeoRide config entry."""
 
     await hass.config_entries.async_forward_entry_unload(entry, "device_tracker")
     await hass.config_entries.async_forward_entry_unload(entry, "switch")
@@ -113,9 +112,9 @@ async def async_unload_entry(hass, entry):
     return True
 
 def connect_socket(context):
-    """subscribe to georide socket"""
-    _LOGGER.info("Georide socket connexion")
-    socket = GeorideSocket()
+    """subscribe to GeoRide socket"""
+    _LOGGER.info("GeoRide socket connexion")
+    socket = GeoRideSocket()
     socket.subscribe_locked(context.on_lock_callback)
     socket.subscribe_device(context.on_device_callback)
     socket.subscribe_position(context.on_position_callback)
@@ -126,11 +125,11 @@ def connect_socket(context):
     socket.connect(context.get_token())
 
 
-class GeorideContext:
-    """Hold the current Georide context."""
+class GeoRideContext:
+    """Hold the current GeoRide context."""
 
     def __init__(self, hass, email, password, token):
-        """Initialize an Georide context."""
+        """Initialize an GeoRide context."""
         self._hass = hass
         self._email = email
         self._password = password
@@ -161,12 +160,12 @@ class GeorideContext:
 
     @property
     def georide_trackers(self):
-        """ georide tracker list """
+        """ GeoRide tracker list """
         return self._georide_trackers
 
     @georide_trackers.setter
     def georide_trackers(self, trackers):
-        """ georide tracker list """
+        """ GeoRide tracker list """
         self._georide_trackers = trackers    
 
     def get_token(self):
@@ -177,7 +176,7 @@ class GeorideContext:
         epoch = math.ceil(time.time())
         if (exp_timestamp - TOKEN_SAFE_DAY) < epoch:
             _LOGGER.info("Time reached, renew token")
-            account = GeorideApi.get_authorisation_token(self._email, self._password)
+            account = GeoRideApi.get_authorisation_token(self._email, self._password)
             config = self._hass.data[DOMAIN]["config"]
             config[CONF_TOKEN] = account.auth_token
             self._token = account.auth_token
@@ -208,17 +207,17 @@ class GeorideContext:
     def refresh_trackers(self):
         """Used to refresh the tracker list"""
         _LOGGER.info("Tracker list refresh")
-        self._georide_trackers = GeorideApi.get_trackers(self.get_token())
+        self._georide_trackers = GeoRideApi.get_trackers(self.get_token())
 
 
     @property
     def socket(self):
-        """ hold the georide socket """
+        """ hold the GeoRide socket """
         return self._socket
     
     @socket.setter
     def socket(self, socket):
-        """set the georide socket"""
+        """set the GeoRide socket"""
         self._socket = socket
 
     @callback

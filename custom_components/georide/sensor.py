@@ -1,4 +1,4 @@
-""" odometter sensor for Georide object """
+""" odometter sensor for GeoRide object """
 
 import logging
 
@@ -6,7 +6,7 @@ from homeassistant.core import callback
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.components.switch import ENTITY_ID_FORMAT
 
-import georideapilib.api as GeorideApi
+import georideapilib.api as GeoRideApi
 
 from .const import DOMAIN as GEORIDE_DOMAIN
 
@@ -15,17 +15,17 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
-    """Set up Georide tracker based off an entry."""
+    """Set up GeoRide tracker based off an entry."""
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]      
 
     if georide_context.get_token() is None:
         return False
 
-    trackers = GeorideApi.get_trackers(georide_context.get_token())
+    trackers = GeoRideApi.get_trackers(georide_context.get_token())
 
     odometer_switch_entities = []
     for tracker in trackers:
-        entity = GeorideOdometerSensorEntity(tracker.tracker_id, georide_context.get_token,
+        entity = GeoRideOdometerSensorEntity(tracker.tracker_id, georide_context.get_token,
                                              georide_context.get_tracker, data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = entity
         odometer_switch_entities.append(entity)
@@ -34,7 +34,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     return True
 
-class GeorideOdometerSensorEntity(SwitchEntity):
+class GeoRideOdometerSensorEntity(SwitchEntity):
     """Represent a tracked device."""
 
     def __init__(self, tracker_id, get_token_callback, get_tracker_callback, data):
@@ -64,7 +64,7 @@ class GeorideOdometerSensorEntity(SwitchEntity):
 
     @property
     def name(self):
-        """ Georide switch name """
+        """ GeoRide odometer name """
         return self._name
 
     @property
@@ -77,12 +77,12 @@ class GeorideOdometerSensorEntity(SwitchEntity):
     
     @property
     def get_token_callback(self):
-        """ Georide switch token callback method """
+        """ GeoRide switch token callback method """
         return self._get_token_callback
     
     @property
     def get_tracker_callback(self):
-        """ Georide switch token callback method """
+        """ GeoRide switch token callback method """
         return self._get_tracker_callback
 
     @property

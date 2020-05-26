@@ -1,5 +1,5 @@
-# Georide Home assistant
-![Logo Georide](/georide-logo.png)
+# GeoRide Home assistant
+![Logo GeoRide](https://brands.home-assistant.io/georide/logo.png)
 
 ⚠️ This is not an official implementation
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)

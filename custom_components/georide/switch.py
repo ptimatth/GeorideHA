@@ -1,4 +1,4 @@
-""" device tracker for Georide object """
+""" device tracker for GeoRide object """
 
 import logging
 
@@ -6,7 +6,7 @@ from homeassistant.core import callback
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.components.switch import ENTITY_ID_FORMAT
 
-import georideapilib.api as GeorideApi
+import georideapilib.api as GeoRideApi
 
 from .const import DOMAIN as GEORIDE_DOMAIN
 
@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
-    """Set up Georide tracker based off an entry."""
+    """Set up GeoRide tracker based off an entry."""
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]      
 
     if georide_context.get_token() is None:
@@ -23,11 +23,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
 
     _LOGGER.info('Current georide token: %s', georide_context.get_token())    
-    trackers = GeorideApi.get_trackers(georide_context.get_token())
+    trackers = GeoRideApi.get_trackers(georide_context.get_token())
 
     lock_switch_entities = []
     for tracker in trackers:
-        entity = GeorideLockSwitchEntity(tracker.tracker_id, georide_context.get_token,
+        entity = GeoRideLockSwitchEntity(tracker.tracker_id, georide_context.get_token,
                                          georide_context.get_tracker, data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = entity
         lock_switch_entities.append(entity)
@@ -38,11 +38,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
 
 
-class GeorideLockSwitchEntity(SwitchEntity):
+class GeoRideLockSwitchEntity(SwitchEntity):
     """Represent a tracked device."""
 
     def __init__(self, tracker_id, get_token_callback, get_tracker_callback, data):
-        """Set up Georide entity."""
+        """Set up GeoRide entity."""
         self._tracker_id = tracker_id
         self._data = data or {}
         self._get_token_callback = get_token_callback
@@ -54,17 +54,17 @@ class GeorideLockSwitchEntity(SwitchEntity):
 
 
     def turn_on(self, **kwargs):
-        """ lock the georide tracker """
+        """ lock the GeoRide tracker """
         _LOGGER.info('async_turn_on %s', kwargs)
-        success = GeorideApi.lock_tracker(self._get_token_callback(), self._tracker_id)
+        success = GeoRideApi.lock_tracker(self._get_token_callback(), self._tracker_id)
         if success:
             self._data.is_locked = True
             self._is_on = True
             
     def turn_off(self, **kwargs):
-        """ unlock the georide tracker """
+        """ unlock the GeoRide tracker """
         _LOGGER.info('async_turn_off %s', kwargs)
-        success = GeorideApi.unlock_tracker(self._get_token_callback(), self._tracker_id)
+        success = GeoRideApi.unlock_tracker(self._get_token_callback(), self._tracker_id)
         if success:
             self._data.is_locked = False
             self._is_on = False
@@ -72,7 +72,7 @@ class GeorideLockSwitchEntity(SwitchEntity):
     async def async_toggle(self, **kwargs):
         """ toggle lock the georide tracker """
         _LOGGER.info('async_toggle %s', kwargs)
-        result = GeorideApi.toogle_lock_tracker(self._get_token_callback(),
+        result = GeoRideApi.toogle_lock_tracker(self._get_token_callback(),
                                                 self._tracker_id)
         self._data.is_locked = result
         self._is_on = result     
@@ -92,26 +92,27 @@ class GeorideLockSwitchEntity(SwitchEntity):
 
     @property
     def name(self):
-        """ Georide switch name """
+        """ GeoRide switch name """
         return self._name
     
     @property
     def is_on(self):
-        """ Georide switch status """
+        """ GeoRide switch status """
         return self._is_on
     
     @property
     def get_token_callback(self):
-        """ Georide switch token callback method """
+        """ GeoRide switch token callback method """
         return self._get_token_callback
     
     @property
     def get_tracker_callback(self):
-        """ Georide switch token callback method """
+        """ GeoRide switch token callback method """
         return self._get_tracker_callback
 
     @property
     def icon(self):
+        """return the entity icon"""
         if self._is_on:
             return "mdi:lock"
         return "mdi:lock-open"

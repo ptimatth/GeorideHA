@@ -4,7 +4,7 @@
     "step": {
       "georide_login": {
         "title": "Set up GeoRide",
-        "description": "Sign-in to georide",
+        "description": "Sign-in to GeoRide",
         "data": {
           "email": "email",
           "password": "password"

@@ -3,8 +3,8 @@
 import logging
 from homeassistant import config_entries
 import voluptuous as vol
-import georideapilib.api as GeorideApi
-import georideapilib.exception as GeorideException
+import georideapilib.api as GeoRideApi
+import georideapilib.exception as GeoRideException
 
 
 from .const import CONF_EMAIL, CONF_PASSWORD, CONF_TOKEN
@@ -13,11 +13,11 @@ from .const import CONF_EMAIL, CONF_PASSWORD, CONF_TOKEN
 _LOGGER = logging.getLogger(__name__)
 
 @config_entries.HANDLERS.register("georide")
-class GeorideConfigFlow(config_entries.ConfigFlow):
-    """Georide config flow """
+class GeoRideConfigFlow(config_entries.ConfigFlow):
+    """GeoRide config flow """
     
     async def async_step_user(self, user_input=None): #pylint: disable=W0613
-        """ handle info to help to configure georide """
+        """ handle info to help to configure GeoRide """
 
         if self._async_current_entries():
             return self.async_abort(reason="one_instance_allowed")
@@ -54,14 +54,14 @@ class GeorideConfigFlow(config_entries.ConfigFlow):
         password = user_input[CONF_PASSWORD]
         
         try:
-            account = GeorideApi.get_authorisation_token(email, password)
+            account = GeoRideApi.get_authorisation_token(email, password)
             data = {
                 CONF_EMAIL: email,
                 CONF_PASSWORD: password,
                 CONF_TOKEN: account.auth_token
             }
             return self.async_create_entry(title=email, data=data)
-        except (GeorideException.SeverException, GeorideException.LoginException):
+        except (GeoRideException.SeverException, GeoRideException.LoginException):
             _LOGGER.error("Invalid credentials provided, config not created")
             errors = {"base":  "faulty_credentials"}
             return self.async_show_form(step_id="georide_login", data_schema=schema, errors=errors)

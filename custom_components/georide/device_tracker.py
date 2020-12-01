@@ -1,11 +1,11 @@
-""" device tracker for Georide object """
+""" device tracker for GeoRide object """
 
 import logging
 
 from homeassistant.components.device_tracker.const import DOMAIN, SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 
-import georideapilib.api as GeorideApi
+import georideapilib.api as GeoRideApi
 
 from .const import DOMAIN as GEORIDE_DOMAIN
 
@@ -20,15 +20,15 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     if georide_context.get_token() is None:
         return False
 
-    _LOGGER.info('Current georide token: %s', georide_context.get_token())
+    _LOGGER.debug('Current GeoRide token: %s', georide_context.get_token())
 
         
-    trackers = GeorideApi.get_trackers(georide_context.get_token())
+    trackers = GeoRideApi.get_trackers(georide_context.get_token())
 
     
     tracker_entities = []
     for tracker in trackers:
-        entity = GeorideTrackerEntity(tracker.tracker_id, georide_context.get_token,
+        entity = GeoRideTrackerEntity(tracker.tracker_id, georide_context.get_token,
                                       georide_context.get_tracker, tracker)
 
 
@@ -40,11 +40,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     return True
 
 
-class GeorideTrackerEntity(TrackerEntity):
+class GeoRideTrackerEntity(TrackerEntity):
     """Represent a tracked device."""
 
     def __init__(self, tracker_id, get_token_callback, get_tracker_callback, tracker):
-        """Set up Georide entity."""
+        """Set up GeoRide entity."""
         self._tracker_id = tracker_id
         self._get_token_callback = get_token_callback
         self._get_tracker_callback = get_tracker_callback
@@ -88,6 +88,7 @@ class GeorideTrackerEntity(TrackerEntity):
 
     @property
     def icon(self):
+        """return the entity icon"""
         return "mdi:map-marker"
     
 

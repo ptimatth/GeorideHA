@@ -211,19 +211,11 @@ class GeoRideContext:
         """ here we return last tracker by id"""
         _LOGGER.debug("Call refresh tracker")
         epoch_min = math.floor(time.time()/60)
-        if (epoch_min % MIN_UNTIL_REFRESH) == 0:
-            if epoch_min != self._previous_refresh:
-                self._previous_refresh = epoch_min
-                await self.force_refresh_trackers()
+        if epoch_min != self._previous_refresh:
+            self._previous_refresh = epoch_min
+            await self.force_refresh_trackers()
         else:
             _LOGGER.debug("We wil dont refresh the tracker list")
-
-        if not self._thread_started:
-            _LOGGER.info("Start the thread")
-            # We refresh the tracker list each hours
-            self._thread_started = True
-            await self.connect_socket()
-
 
 
     async def force_refresh_trackers(self):
@@ -231,22 +223,27 @@ class GeoRideContext:
         _LOGGER.info("Tracker list refresh")
         new_georide_trackers = await self._hass.async_add_executor_job(GeoRideApi.get_trackers,
                                                                      await self.get_token())
-
         for refreshed_tracker in new_georide_trackers:
             found = False 
             for tracker in self._georide_trackers:
                 if tracker.tracker_id == refreshed_tracker.tracker_id:
                     tracker.update_all_data(refreshed_tracker)
                     found = True
-            if not found:
-                self._georide_trackers.append(refreshed_tracker)
+        if not found:
+            self._georide_trackers.append(refreshed_tracker)
+            if not self._thread_started:
+                _LOGGER.info("Start the thread")
+                # We refresh the tracker list each hours
+                self._thread_started = True
+                await self.connect_socket()
+
 
 
     async def init_context(self, hass):
         """Used to refresh the tracker list"""
         _LOGGER.info("Init_context")
         await self.force_refresh_trackers()
-        update_interval = timedelta(seconds=10)
+        update_interval = timedelta(minutes=MIN_UNTIL_REFRESH)
 
         for tracker in self._georide_trackers:
             coordinator = DataUpdateCoordinator[Mapping[str, Any]](
@@ -286,7 +283,9 @@ class GeoRideContext:
                 tracker.locked_latitude = data['lockedLatitude']
                 tracker.locked_longitude = data['lockedLongitude']
                 tracker.is_locked = data['isLocked']
-                return
+                break
+        self.force_refresh_trackers()
+
 
     @callback
     def on_device_callback(self, data):
@@ -295,7 +294,8 @@ class GeoRideContext:
         for tracker in self._georide_trackers:
             if tracker.tracker_id == data['trackerId']:
                 tracker.status = data['status']
-                return
+        self.force_refresh_trackers()
+
     @callback
     def on_alarm_callback(self, data):
         """on device callback"""
@@ -318,8 +318,8 @@ class GeoRideContext:
                     _LOGGER.info("powerCut detected")
                 else:
                     _LOGGER.warning("Unamanged alarm: ", data.name)
-
-                return
+                break
+        self.force_refresh_trackers()
 
     @callback
     def on_position_callback(self, data):
@@ -332,5 +332,7 @@ class GeoRideContext:
                 tracker.moving = data['moving']
                 tracker.speed = data['speed']
                 tracker.fixtime = data['fixtime']
-                return
+                break
+        self.force_refresh_trackers()
+
 

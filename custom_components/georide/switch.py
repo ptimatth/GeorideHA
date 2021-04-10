@@ -60,7 +60,7 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
         georide_context = self._hass.data[GEORIDE_DOMAIN]["context"]
         token = await georide_context.get_token()
         success = await self._hass.async_add_executor_job(GeoRideApi.lock_tracker,
-                                                      token, self._tracker_id)
+                                                      token, self._tracker.tracker_id)
         if success:
             self._tracker.is_locked = True
             
@@ -70,7 +70,7 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
         georide_context = self._hass.data[GEORIDE_DOMAIN]["context"]
         token = await georide_context.get_token()
         success = await self._hass.async_add_executor_job(GeoRideApi.unlock_tracker,
-                                                          token, self._tracker_id)
+                                                          token, self._tracker.tracker_id)
         if success:
             self._tracker.is_locked = False
 
@@ -80,7 +80,7 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
         georide_context = self._hass.data[GEORIDE_DOMAIN]["context"]
         token = await georide_context.get_token()
         result = await self._hass.async_add_executor_job(GeoRideApi.toogle_lock_tracker,
-                                                         token, self._tracker_id)
+                                                         token, self._tracker.tracker_id)
         self._tracker.is_locked = result
 
     @property

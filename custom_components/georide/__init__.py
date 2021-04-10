@@ -118,6 +118,7 @@ def connect_socket(context):
     socket.subscribe_locked(context.on_lock_callback)
     socket.subscribe_device(context.on_device_callback)
     socket.subscribe_position(context.on_position_callback)
+    socket.subscribe_alarm(context.on_alarm_callback)
 
     context.socket = socket
 
@@ -176,7 +177,8 @@ class GeoRideContext:
         epoch = math.ceil(time.time())
         if (exp_timestamp - TOKEN_SAFE_DAY) < epoch:
             _LOGGER.info("Time reached, renew token")
-            account = GeoRideApi.get_authorisation_token(self._email, self._password)
+
+            account = await self._hass.async_add_executor_job(GeoRideApi.get_authorisation_token, [self._email, self._password])
             config = self._hass.data[DOMAIN]["config"]
             config[CONF_TOKEN] = account.auth_token
             self._token = account.auth_token
@@ -209,7 +211,6 @@ class GeoRideContext:
         _LOGGER.info("Tracker list refresh")
         self._georide_trackers = GeoRideApi.get_trackers(self.get_token())
 
-
     @property
     def socket(self):
         """ hold the GeoRide socket """
@@ -239,6 +240,30 @@ class GeoRideContext:
             if tracker.tracker_id == data['trackerId']:
                 tracker.status = data['status']
                 return
+    @callback
+    def on_alarm_callback(self, data):
+        """on device callback"""
+        _LOGGER.info("On alarm received")
+        for tracker in self._georide_trackers:
+            if tracker.tracker_id == data['trackerId']:
+                if data.name == 'vibration':
+                    _LOGGER.info("Vibration detected")
+                elif data.name == 'exitZone':
+                    _LOGGER.info("Exit zone detected")
+                elif data.name == 'crash':
+                    _LOGGER.info("Crash detected")
+                elif data.name == 'crashParking':
+                    _LOGGER.info("Crash parking detected")
+                elif data.name == 'deviceOffline':
+                    _LOGGER.info("Device offline detected")
+                elif data.name == 'deviceOnline':
+                    _LOGGER.info("Device online detected")
+                elif data.name == 'powerCut':
+                    _LOGGER.info("powerCut detected")
+                else:
+                    _LOGGER.warning("Unamanged alarm: ", data.name)
+
+                return
 
     @callback
     def on_position_callback(self, data):
@@ -252,6 +277,4 @@ class GeoRideContext:
                 tracker.speed = data['speed']
                 tracker.fixtime = data['fixtime']
                 return
-
-
 

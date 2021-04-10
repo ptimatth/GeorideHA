@@ -15,17 +15,8 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up Georide tracker based off an entry."""
 
-    georide_context = hass.data[GEORIDE_DOMAIN]["context"]
-    token = await georide_context.get_token()
-    if token is None:
-        return False
-
-    _LOGGER.debug('Current GeoRide token: %s', token)
-
-        
-    trackers = await hass.async_add_executor_job(GeoRideApi.get_trackers, token)
-
-    
+    georide_context = hass.data[GEORIDE_DOMAIN]["context"]        
+    trackers = georide_context.get_trackers()    
     tracker_entities = []
     for tracker in trackers:
         entity = GeoRideTrackerEntity(hass, tracker.tracker_id, georide_context.get_token,
@@ -49,7 +40,7 @@ class GeoRideTrackerEntity(TrackerEntity):
         self._get_token_callback = get_token_callback
         self._get_tracker_callback = get_tracker_callback
         self._name = tracker.tracker_name
-        self._data = tracker or {}
+        self._tracker = tracker
         self.entity_id = DOMAIN + ".{}".format(tracker_id)
         self._hass = hass
 
@@ -100,7 +91,7 @@ class GeoRideTrackerEntity(TrackerEntity):
             "name": self.name,
             "identifiers": {(GEORIDE_DOMAIN, self._tracker_id)},
             "manufacturer": "GeoRide",
-            "odometer": "{} km".format(self._data.odometer)
+            "odometer": "{} km".format(self.tracker.odometer)
         }
 
     @property
@@ -121,7 +112,7 @@ class GeoRideTrackerEntity(TrackerEntity):
 
     async def async_update(self):
         """ update the current tracker"""
-        _LOGGER.info('update')
+        _LOGGER.debug('update')
         self._data = await self._get_tracker_callback(self._tracker_id)
-        self._name = self._data.tracker_name
+        self._name = self.tracker.tracker_name
         

@@ -53,7 +53,7 @@ class GeoRideOdometerSensorEntity(SwitchEntity):
 
     async def async_update(self):
         """ update the current tracker"""
-        _LOGGER.info('update')
+        _LOGGER.debug('update')
         self._data = await self._get_tracker_callback(self._tracker_id)
         self._name = self._data.tracker_name
         self._state = self._data.odometer

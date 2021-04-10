@@ -88,7 +88,7 @@ async def async_setup_entry(hass, entry):
     hass.data[DOMAIN]["context"] = context
 
     # We add trackers to the context
-    await context.refresh_trackers()
+    await context.force_refresh_trackers()
 
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
@@ -127,7 +127,7 @@ class GeoRideContext:
         self._hass = hass
         self._email = email
         self._password = password
-        self._georide_trackers = defaultdict(set)
+        self._georide_trackers = []
         self._token = token
         self._socket = None
         self._thread_started = False
@@ -196,11 +196,20 @@ class GeoRideContext:
 
     async def get_tracker(self, tracker_id):
         """ here we return last tracker by id"""
+        await self.refresh_trackers()
+        for tracker in self._georide_trackers:
+            if tracker.tracker_id == tracker_id:
+                return tracker
+        return {}
+
+    async def refresh_trackers(self):
+        """ here we return last tracker by id"""
+        _LOGGER.info("Call refresh tracker")
         epoch_min = math.floor(time.time()/60)
         if (epoch_min % MIN_UNTIL_REFRESH) == 0:
             if epoch_min != self._previous_refresh:
                 self._previous_refresh = epoch_min
-                await self.refresh_trackers()
+                await self.force_refresh_trackers()
 
         if not self._thread_started:
             _LOGGER.info("Start the thread")
@@ -208,21 +217,22 @@ class GeoRideContext:
             self._thread_started = True
             await self.connect_socket()
 
-        for tracker in self._georide_trackers:
-            if tracker.tracker_id == tracker_id:
-                return tracker
-        return None
 
-    async def refresh_trackers(self):
+
+    async def force_refresh_trackers(self):
         """Used to refresh the tracker list"""
         _LOGGER.info("Tracker list refresh")
         new_georide_trackers = await self._hass.async_add_executor_job(GeoRideApi.get_trackers,
                                                                      await self.get_token())
 
-        for tracker in self._georide_trackers:
-            for refreshed_tracker in new_georide_trackers:
+        for refreshed_tracker in new_georide_trackers:
+            found = False 
+            for tracker in self._georide_trackers:
                 if tracker.tracker_id == refreshed_tracker.tracker_id:
                     tracker.update_all_data(refreshed_tracker)
+                    found = True
+            if not found:
+                self._georide_trackers.append(refreshed_tracker)
 
 
     @property

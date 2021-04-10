@@ -19,7 +19,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     if token is None:
         return False
 
-    trackers = await GeoRideApi.get_trackers(token)
+    trackers = await hass.async_add_executor_job(GeoRideApi.get_trackers,token)
 
     binary_sensor_entities = []
     for tracker in trackers:

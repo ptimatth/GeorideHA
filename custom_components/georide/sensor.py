@@ -77,16 +77,6 @@ class GeoRideOdometerSensorEntity(CoordinatorEntity, SwitchEntity):
         return self._unit_of_measurement
     
     @property
-    def get_token_callback(self):
-        """ GeoRide switch token callback method """
-        return self._get_token_callback
-    
-    @property
-    def get_tracker_callback(self):
-        """ GeoRide switch token callback method """
-        return self._get_tracker_callback
-
-    @property
     def icon(self):
         """icon getter"""
         return "mdi:counter"

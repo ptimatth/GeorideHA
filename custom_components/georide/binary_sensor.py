@@ -20,22 +20,27 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
         return False
 
     trackers = await hass.async_add_executor_job(GeoRideApi.get_trackers,token)
+    
 
-    binary_sensor_entities = []
+    stolen_entities = []
     for tracker in trackers:
         stolen_entity = GeoRideStolenBinarySensorEntity(hass, tracker.tracker_id,
                                                         georide_context.get_token,
                                                         georide_context.get_tracker,
                                                         data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = stolen_entity
+        stolen_entities.append(stolen_entity)
+    async_add_entities(stolen_entities)
+
+    crashed_entities = []
+    for tracker in trackers:
         crashed_entity = GeoRideCrashedBinarySensorEntity(hass, tracker.tracker_id,
                                                           georide_context.get_token,
                                                           georide_context.get_tracker,
                                                           data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = crashed_entity
-        binary_sensor_entities.append(stolen_entity)
-        binary_sensor_entities.append(crashed_entity)
-    async_add_entities(binary_sensor_entities)
+        crashed_entities.append(crashed_entity)
+    async_add_entities(crashed_entities)
 
     return True
 
@@ -111,7 +116,6 @@ class GeoRideCrashedBinarySensorEntity(BinarySensorEntity):
         self.entity_id = ENTITY_ID_FORMAT.format("is_crashed") + "." + str(tracker_id)
         self._state = 0
         self._hass = hass
-
 
     async def async_update(self):
         """ update the current tracker"""

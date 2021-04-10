@@ -88,6 +88,8 @@ class GeoRideLockSwitchEntity(SwitchEntity):
         """ update the current tracker"""
         _LOGGER.info('update')
         self._data = await self._get_tracker_callback(self._tracker_id)
+        _LOGGER.debug('data %s', self._data)
+
         self._name = self._data.tracker_name
         self._is_on = self._data.is_locked
 

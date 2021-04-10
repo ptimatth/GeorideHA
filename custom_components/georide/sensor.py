@@ -1,10 +1,15 @@
 """ odometter sensor for GeoRide object """
 
 import logging
+from typing import Any, Mapping
 
 from homeassistant.core import callback
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.components.switch import ENTITY_ID_FORMAT
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
 import georideapilib.api as GeoRideApi
 
@@ -16,37 +21,31 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up GeoRide tracker based off an entry."""
-    georide_context = hass.data[GEORIDE_DOMAIN]["context"]      
-    token = await georide_context.get_token()
-    if token is None:
-        return False
+    georide_context = hass.data[GEORIDE_DOMAIN]["context"]
+    coordoned_trackers = georide_context.get_coordoned_trackers()
 
-    trackers = await hass.async_add_executor_job(GeoRideApi.get_trackers,token)
+    entities = []
+    for coordoned_tracker in coordoned_trackers:
+        tracker = coordoned_tracker['tracker']
+        coordinator = coordoned_tracker['coordinator']
+        entity = GeoRideOdometerSensorEntity(coordinator, tracker, hass)
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = coordinator
+        entities.append(entity)
 
-    odometer_switch_entities = []
-    for tracker in trackers:
-        entity = GeoRideOdometerSensorEntity(hass, tracker.tracker_id, georide_context.get_token,
-                                             georide_context.get_tracker, data=tracker)
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = entity
-        odometer_switch_entities.append(entity)
-
-    async_add_entities(odometer_switch_entities)
+    async_add_entities(entities)
 
     return True
 
-class GeoRideOdometerSensorEntity(SwitchEntity):
+class GeoRideOdometerSensorEntity(CoordinatorEntity, SwitchEntity):
     """Represent a tracked device."""
 
-    def __init__(self, hass, tracker_id, get_token_callback, get_tracker_callback, data):
-        """Set up Georide entity."""
-        self._tracker_id = tracker_id
-        self._data = data or {}
-        self._get_token_callback = get_token_callback
-        self._get_tracker_callback = get_tracker_callback
-        self._name = data.tracker_name
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]], tracker, hass):
+        """Set up GeoRide entity."""
+        super().__init__(coordinator)
+        self._tracker = tracker
+        self._name = tracker.tracker_name
         self._unit_of_measurement = "m"
-
-        self.entity_id = ENTITY_ID_FORMAT.format("odometer") + "." + str(tracker_id)
+        self.entity_id = ENTITY_ID_FORMAT.format("odometer") + "." + str(tracker.tracker_id)
         self._state = 0
         self._hass = hass
 
@@ -54,14 +53,13 @@ class GeoRideOdometerSensorEntity(SwitchEntity):
     async def async_update(self):
         """ update the current tracker"""
         _LOGGER.debug('update')
-        self._data = await self._get_tracker_callback(self._tracker_id)
-        self._name = self._data.tracker_name
-        self._state = self._data.odometer
+        self._name = self._tracker.tracker_name
+        self._state = self._tracker.odometer
 
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return self._tracker_id
+        return self._tracker.tracker_id
 
     @property
     def name(self):
@@ -70,10 +68,12 @@ class GeoRideOdometerSensorEntity(SwitchEntity):
 
     @property
     def state(self):
+        """state property"""
         return self._state
 
     @property
     def unit_of_measurement(self):
+        """unit of mesurment property"""
         return self._unit_of_measurement
     
     @property
@@ -88,15 +88,15 @@ class GeoRideOdometerSensorEntity(SwitchEntity):
 
     @property
     def icon(self):
+        """icon getter"""
         return "mdi:counter"
     
-
     @property
     def device_info(self):
         """Return the device info."""
         return {
             "name": self.name,
-            "identifiers": {(GEORIDE_DOMAIN, self._tracker_id)},
+            "identifiers": {(GEORIDE_DOMAIN, self._tracker.tracker_id)},
             "manufacturer": "GeoRide"
         }
 

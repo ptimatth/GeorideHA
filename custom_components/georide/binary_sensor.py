@@ -8,38 +8,27 @@ from typing import Any, Mapping
 from homeassistant.core import callback
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.binary_sensor import ENTITY_ID_FORMAT
-
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
-    DataUpdateCoordinator,
+    DataUpdateCoordinator
 )
 
 import georideapilib.api as GeoRideApi
 import georideapilib.objects as GeoRideTracker
 
 from .const import DOMAIN as GEORIDE_DOMAIN
-from .const import MIN_UNTIL_REFRESH
 
 
 _LOGGER = logging.getLogger(__name__) 
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up GeoRide tracker based off an entry."""
-    georide_context = hass.data[GEORIDE_DOMAIN]["context"]      
-    token = await georide_context.get_token()
-    if token is None:
-        return False
-
-    update_interval = timedelta(seconds=1)
-    trackers = await hass.async_add_executor_job(GeoRideApi.get_trackers,token)
+    georide_context = hass.data[GEORIDE_DOMAIN]["context"]
     entities = []
-    for tracker in trackers:
-        coordinator = DataUpdateCoordinator[Mapping[str, Any]](
-            hass,
-            _LOGGER,
-            name=tracker.tracker_name,
-            update_method=georide_context.refresh_trackers,
-            update_interval=update_interval
-        )
+    coordoned_trackers = georide_context.get_coordoned_trackers()
+    for coordoned_tracker in coordoned_trackers:
+        tracker = coordoned_tracker['tracker']
+        coordinator = coordoned_tracker['coordinator']
+
         stolen_entity = GeoRideStolenBinarySensorEntity(coordinator, tracker)
         crashed_entity = GeoRideCrashedBinarySensorEntity(coordinator, tracker)
         entities.append(stolen_entity)
@@ -53,7 +42,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
 class GeoRideBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
     """Represent a tracked device."""
-    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]], tracker: GeoRideTracker):
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker: GeoRideTracker):
         """Set up Georide entity."""
         super().__init__(coordinator)
         self._tracker = tracker
@@ -89,8 +79,8 @@ class GeoRideBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
 
 class GeoRideStolenBinarySensorEntity(GeoRideBinarySensorEntity):
     """Represent a tracked device."""
-
-    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]], tracker: GeoRideTracker):
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker: GeoRideTracker):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker)
         self.entity_id = ENTITY_ID_FORMAT.format("is_stolen") + "." + str(tracker.tracker_id)
@@ -113,7 +103,8 @@ class GeoRideStolenBinarySensorEntity(GeoRideBinarySensorEntity):
 class GeoRideCrashedBinarySensorEntity(GeoRideBinarySensorEntity):
     """Represent a tracked device."""
 
-    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]], tracker: GeoRideTracker):
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker: GeoRideTracker):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker)
         self.entity_id = ENTITY_ID_FORMAT.format("is_crashed") + "." + str(tracker.tracker_id)

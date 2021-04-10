@@ -2,6 +2,7 @@
 from collections import defaultdict
 
 import logging
+from typing import Any, Mapping
 from datetime import timedelta
 import math
 import time
@@ -24,7 +25,10 @@ import homeassistant.helpers.event as ha_event
 
 from homeassistant.setup import async_when_setup
 from homeassistant.helpers.typing import HomeAssistantType
-
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
 from .const import (
     CONF_EMAIL,
@@ -88,7 +92,7 @@ async def async_setup_entry(hass, entry):
     hass.data[DOMAIN]["context"] = context
 
     # We add trackers to the context
-    await context.force_refresh_trackers()
+    await context.init_context(hass)
 
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
@@ -127,6 +131,7 @@ class GeoRideContext:
         self._hass = hass
         self._email = email
         self._password = password
+        self._georide_trackers_coordoned = []
         self._georide_trackers = []
         self._token = token
         self._socket = None
@@ -204,12 +209,14 @@ class GeoRideContext:
 
     async def refresh_trackers(self):
         """ here we return last tracker by id"""
-        _LOGGER.info("Call refresh tracker")
+        _LOGGER.debug("Call refresh tracker")
         epoch_min = math.floor(time.time()/60)
         if (epoch_min % MIN_UNTIL_REFRESH) == 0:
             if epoch_min != self._previous_refresh:
                 self._previous_refresh = epoch_min
                 await self.force_refresh_trackers()
+        else:
+            _LOGGER.debug("We wil dont refresh the tracker list")
 
         if not self._thread_started:
             _LOGGER.info("Start the thread")
@@ -234,6 +241,31 @@ class GeoRideContext:
             if not found:
                 self._georide_trackers.append(refreshed_tracker)
 
+
+    async def init_context(self, hass):
+        """Used to refresh the tracker list"""
+        _LOGGER.info("Init_context")
+        await self.force_refresh_trackers()
+        update_interval = timedelta(seconds=10)
+
+        for tracker in self._georide_trackers:
+            coordinator = DataUpdateCoordinator[Mapping[str, Any]](
+                hass,
+                _LOGGER,
+                name=tracker.tracker_name,
+                update_method=self.refresh_trackers,
+                update_interval=update_interval
+            )
+            self._georide_trackers_coordoned.append({
+                    "tracker": tracker,
+                    "coordinator": coordinator
+                })
+
+
+    def get_coordoned_trackers(self):
+        """Return coordoned trackers"""
+
+        return self._georide_trackers_coordoned
 
     @property
     def socket(self):

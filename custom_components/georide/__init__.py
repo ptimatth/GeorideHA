@@ -93,7 +93,8 @@ async def async_setup_entry(hass, entry):
         hass.config_entries.async_forward_entry_setup(entry, "switch"))
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "sensor"))
-
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "binary_sensor"))
     return True
 
 
@@ -103,6 +104,8 @@ async def async_unload_entry(hass, entry):
     await hass.config_entries.async_forward_entry_unload(entry, "device_tracker")
     await hass.config_entries.async_forward_entry_unload(entry, "switch")
     await hass.config_entries.async_forward_entry_unload(entry, "sensor")
+    await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+
 
     context = hass.data[DOMAIN]["context"]
     context.socket.disconnect()

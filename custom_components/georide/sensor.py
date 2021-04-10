@@ -4,8 +4,8 @@ import logging
 from typing import Any, Mapping
 
 from homeassistant.core import callback
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.components.switch import ENTITY_ID_FORMAT
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import ENTITY_ID_FORMAT
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -36,7 +36,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     return True
 
-class GeoRideOdometerSensorEntity(CoordinatorEntity, SwitchEntity):
+class GeoRideOdometerSensorEntity(CoordinatorEntity, SensorEntity):
     """Represent a tracked device."""
 
     def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]], tracker, hass):
@@ -49,13 +49,6 @@ class GeoRideOdometerSensorEntity(CoordinatorEntity, SwitchEntity):
         self._state = 0
         self._hass = hass
 
-
-    async def async_update(self):
-        """ update the current tracker"""
-        _LOGGER.debug('update')
-        self._name = self._tracker.tracker_name
-        self._state = self._tracker.odometer
-
     @property
     def unique_id(self):
         """Return the unique ID."""
@@ -64,12 +57,12 @@ class GeoRideOdometerSensorEntity(CoordinatorEntity, SwitchEntity):
     @property
     def name(self):
         """ GeoRide odometer name """
-        return self._name
+        return self._tracker.tracker_name
 
     @property
     def state(self):
         """state property"""
-        return self._state
+        return self._tracker.odometer
 
     @property
     def unit_of_measurement(self):

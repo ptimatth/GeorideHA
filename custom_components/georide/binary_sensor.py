@@ -50,8 +50,7 @@ class GeoRideBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
         self._name = tracker.tracker_name
 
         self.entity_id = ENTITY_ID_FORMAT.format("is_stolen") + "." + str(tracker.tracker_id)
-        self._state = None
-        self._data = False
+        self._is_on = False
 
     @property
     def unique_id(self):
@@ -62,11 +61,6 @@ class GeoRideBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
     def name(self):
         """ GeoRide odometer name """
         return self._name
-
-    @property
-    def is_on(self):
-        """state value property"""
-        return self._data
 
     @property
     def device_info(self):
@@ -85,17 +79,15 @@ class GeoRideStolenBinarySensorEntity(GeoRideBinarySensorEntity):
         super().__init__(coordinator, tracker)
         self.entity_id = ENTITY_ID_FORMAT.format("is_stolen") + "." + str(tracker.tracker_id)
 
-    async def async_update(self):
-        """ update the current tracker"""
-        _LOGGER.debug('update')
-        self._name = self._tracker.tracker_name
-        self._data = self._tracker.is_stolen
-
     @property
     def unique_id(self):
         """Return the unique ID."""
         return f"is_stolen_{self._tracker.tracker_id}"
-
+    
+    @property
+    def is_on(self):
+        """state value property"""
+        return self._tracker.is_stolen
   
 
 
@@ -109,13 +101,13 @@ class GeoRideCrashedBinarySensorEntity(GeoRideBinarySensorEntity):
         super().__init__(coordinator, tracker)
         self.entity_id = ENTITY_ID_FORMAT.format("is_crashed") + "." + str(tracker.tracker_id)
 
-    async def async_update(self):
-        """ update the current tracker"""
-        _LOGGER.debug('update')
-        self._name = self._tracker.tracker_name
-        self._data = self._tracker.is_crashed
-
     @property
     def unique_id(self):
         """Return the unique ID."""
         return f"is_crashed_{self._tracker.tracker_id}"
+    
+    @property
+    def is_on(self):
+        """state value property"""
+        return self._tracker.is_crashed
+  

@@ -23,6 +23,8 @@ import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.event as ha_event
 
 from homeassistant.setup import async_when_setup
+from homeassistant.helpers.typing import HomeAssistantType
+
 
 from .const import (
     CONF_EMAIL,
@@ -33,6 +35,7 @@ from .const import (
     MIN_UNTIL_REFRESH,
     DOMAIN
 )
+
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -171,7 +174,7 @@ class GeoRideContext:
         self._socket = socket
 
         socket.init()
-        socket.connect(await self.get_token())
+        self._hass.async_add_executor_job(socket.connect, await self.get_token())
 
     async def get_token(self):
         """ here we return the current valid tocken """
@@ -201,9 +204,9 @@ class GeoRideContext:
 
         if not self._thread_started:
             _LOGGER.info("Start the thread")
-            await self.connect_socket()
             # We refresh the tracker list each hours
             self._thread_started = True
+            await self.connect_socket()
 
         for tracker in self._georide_trackers:
             if tracker.tracker_id == tracker_id:
@@ -213,8 +216,14 @@ class GeoRideContext:
     async def refresh_trackers(self):
         """Used to refresh the tracker list"""
         _LOGGER.info("Tracker list refresh")
-        self._georide_trackers = await self._hass.async_add_executor_job(GeoRideApi.get_trackers,
-                                                                         await self.get_token())
+        new_georide_trackers = await self._hass.async_add_executor_job(GeoRideApi.get_trackers,
+                                                                     await self.get_token())
+
+        for tracker in self._georide_trackers:
+            for refreshed_tracker in new_georide_trackers:
+                if tracker.tracker_id == refreshed_tracker.tracker_id:
+                    tracker.update_all_data(refreshed_tracker)
+
 
     @property
     def socket(self):

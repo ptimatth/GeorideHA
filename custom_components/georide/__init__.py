@@ -111,7 +111,7 @@ async def async_unload_entry(hass, entry):
 
     return True
 
-def connect_socket(context):
+async def connect_socket(context):
     """subscribe to GeoRide socket"""
     _LOGGER.info("GeoRide socket connexion")
     socket = GeoRideSocket()
@@ -123,7 +123,7 @@ def connect_socket(context):
     context.socket = socket
 
     socket.init()
-    socket.connect(context.get_token())
+    socket.connect(await context.get_token())
 
 
 class GeoRideContext:
@@ -169,7 +169,7 @@ class GeoRideContext:
         """ GeoRide tracker list """
         self._georide_trackers = trackers    
 
-    def get_token(self):
+    async def get_token(self):
         """ here we return the current valid tocken """
         jwt_data = jwt.decode(self._token, verify=False)
         exp_timestamp = jwt_data['exp']

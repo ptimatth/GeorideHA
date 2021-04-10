@@ -17,11 +17,11 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up GeoRide tracker based off an entry."""
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]      
-
-    if georide_context.get_token() is None:
+    token = await georide_context.get_token()
+    if token is None:
         return False
 
-    trackers = GeoRideApi.get_trackers(georide_context.get_token())
+    trackers = GeoRideApi.get_trackers(token)
 
     odometer_switch_entities = []
     for tracker in trackers:
@@ -50,10 +50,10 @@ class GeoRideOdometerSensorEntity(SwitchEntity):
         self._state = 0
 
 
-    def update(self):
+    async def async_update(self):
         """ update the current tracker"""
         _LOGGER.info('update')
-        self._data = self._get_tracker_callback(self._tracker_id)
+        self._data = await self._get_tracker_callback(self._tracker_id)
         self._name = self._data.tracker_name
         self._state = self._data.odometer
 

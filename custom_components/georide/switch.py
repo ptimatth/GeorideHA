@@ -17,13 +17,13 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up GeoRide tracker based off an entry."""
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]      
-
-    if georide_context.get_token() is None:
+    token = await georide_context.get_token()
+    if token is None:
         return False
 
 
-    _LOGGER.info('Current georide token: %s', georide_context.get_token())    
-    trackers = GeoRideApi.get_trackers(georide_context.get_token())
+    _LOGGER.info('Current georide token: %s', token)    
+    trackers = await GeoRideApi.get_trackers(token)
 
     lock_switch_entities = []
     for tracker in trackers:
@@ -56,7 +56,7 @@ class GeoRideLockSwitchEntity(SwitchEntity):
     def turn_on(self, **kwargs):
         """ lock the GeoRide tracker """
         _LOGGER.info('async_turn_on %s', kwargs)
-        success = GeoRideApi.lock_tracker(self._get_token_callback(), self._tracker_id)
+        success = GeoRideApi.lock_tracker(await self._get_token_callback(), self._tracker_id)
         if success:
             self._data.is_locked = True
             self._is_on = True
@@ -64,7 +64,7 @@ class GeoRideLockSwitchEntity(SwitchEntity):
     def turn_off(self, **kwargs):
         """ unlock the GeoRide tracker """
         _LOGGER.info('async_turn_off %s', kwargs)
-        success = GeoRideApi.unlock_tracker(self._get_token_callback(), self._tracker_id)
+        success = GeoRideApi.unlock_tracker(await self._get_token_callback(), self._tracker_id)
         if success:
             self._data.is_locked = False
             self._is_on = False
@@ -72,16 +72,16 @@ class GeoRideLockSwitchEntity(SwitchEntity):
     async def async_toggle(self, **kwargs):
         """ toggle lock the georide tracker """
         _LOGGER.info('async_toggle %s', kwargs)
-        result = GeoRideApi.toogle_lock_tracker(self._get_token_callback(),
+        result = await GeoRideApi.toogle_lock_tracker(await self._get_token_callback(),
                                                 self._tracker_id)
         self._data.is_locked = result
         self._is_on = result     
 
 
-    def update(self):
+    async def async_update(self):
         """ update the current tracker"""
         _LOGGER.info('update')
-        self._data = self._get_tracker_callback(self._tracker_id)
+        self._data = await self._get_tracker_callback(self._tracker_id)
         self._name = self._data.tracker_name
         self._is_on = self._data.is_locked
 

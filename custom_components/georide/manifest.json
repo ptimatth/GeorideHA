@@ -8,5 +8,6 @@
     "pyjwt>=1.7.1"
   ],
   "dependencies": [],
-  "codeowners": ["ptimatth"]
+  "codeowners": ["ptimatth"],
+  "version": "0.6.0"
 }

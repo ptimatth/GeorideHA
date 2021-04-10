@@ -209,7 +209,7 @@ class GeoRideContext:
     async def refresh_trackers(self):
         """Used to refresh the tracker list"""
         _LOGGER.info("Tracker list refresh")
-        self._georide_trackers = await self._hass.async_add_executor_job(GeoRideApi.get_trackers, await self.get_token)
+        self._georide_trackers = await self._hass.async_add_executor_job(GeoRideApi.get_trackers, await self.get_token())
 
     @property
     def socket(self):

@@ -178,7 +178,7 @@ class GeoRideContext:
         if (exp_timestamp - TOKEN_SAFE_DAY) < epoch:
             _LOGGER.info("Time reached, renew token")
 
-            account = await self._hass.async_add_executor_job(GeoRideApi.get_authorisation_token, [self._email, self._password])
+            account = await self._hass.async_add_executor_job(GeoRideApi.get_authorisation_token, self._email, self._password)
             config = self._hass.data[DOMAIN]["config"]
             config[CONF_TOKEN] = account.auth_token
             self._token = account.auth_token

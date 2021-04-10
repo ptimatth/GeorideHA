@@ -114,19 +114,6 @@ async def async_unload_entry(hass, entry):
 
     return True
 
-async def connect_socket(context):
-    """subscribe to GeoRide socket"""
-    _LOGGER.info("GeoRide socket connexion")
-    socket = GeoRideSocket()
-    socket.subscribe_locked(context.on_lock_callback)
-    socket.subscribe_device(context.on_device_callback)
-    socket.subscribe_position(context.on_position_callback)
-    socket.subscribe_alarm(context.on_alarm_callback)
-
-    context.socket = socket
-
-    socket.init()
-    socket.connect(await context.get_token())
 
 
 class GeoRideContext:
@@ -170,7 +157,21 @@ class GeoRideContext:
     @georide_trackers.setter
     def georide_trackers(self, trackers):
         """ GeoRide tracker list """
-        self._georide_trackers = trackers    
+        self._georide_trackers = trackers
+
+    async def connect_socket(self):
+        """subscribe to GeoRide socket"""
+        _LOGGER.info("GeoRide socket connexion")
+        socket = GeoRideSocket()
+        socket.subscribe_locked(self.on_lock_callback)
+        socket.subscribe_device(self.on_device_callback)
+        socket.subscribe_position(self.on_position_callback)
+        socket.subscribe_alarm(self.on_alarm_callback)
+
+        self._socket = socket
+
+        socket.init()
+        socket.connect(await self.get_token())
 
     async def get_token(self):
         """ here we return the current valid tocken """
@@ -180,8 +181,8 @@ class GeoRideContext:
         epoch = math.ceil(time.time())
         if (exp_timestamp - TOKEN_SAFE_DAY) < epoch:
             _LOGGER.info("Time reached, renew token")
-
-            account = await self._hass.async_add_executor_job(GeoRideApi.get_authorisation_token, self._email, self._password)
+            account = await self._hass.async_add_executor_job(GeoRideApi.get_authorisation_token,
+                                                              self._email, self._password)
             config = self._hass.data[DOMAIN]["config"]
             config[CONF_TOKEN] = account.auth_token
             self._token = account.auth_token
@@ -200,7 +201,7 @@ class GeoRideContext:
 
         if not self._thread_started:
             _LOGGER.info("Start the thread")
-            self._hass.async_add_executor_job(connect_socket, self)
+            await self.connect_socket()
             # We refresh the tracker list each hours
             self._thread_started = True
 
@@ -212,7 +213,8 @@ class GeoRideContext:
     async def refresh_trackers(self):
         """Used to refresh the tracker list"""
         _LOGGER.info("Tracker list refresh")
-        self._georide_trackers = await self._hass.async_add_executor_job(GeoRideApi.get_trackers, await self.get_token())
+        self._georide_trackers = await self._hass.async_add_executor_job(GeoRideApi.get_trackers,
+                                                                         await self.get_token())
 
     @property
     def socket(self):

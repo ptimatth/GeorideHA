@@ -27,7 +27,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     lock_switch_entities = []
     for tracker in trackers:
-        entity = GeoRideLockSwitchEntity(tracker.tracker_id, georide_context.get_token,
+        entity = GeoRideLockSwitchEntity(hass, tracker.tracker_id, georide_context.get_token,
                                          georide_context.get_tracker, data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = entity
         lock_switch_entities.append(entity)
@@ -41,7 +41,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 class GeoRideLockSwitchEntity(SwitchEntity):
     """Represent a tracked device."""
 
-    def __init__(self, tracker_id, get_token_callback, get_tracker_callback, data):
+    def __init__(self, hass, tracker_id, get_token_callback, get_tracker_callback, data):
         """Set up GeoRide entity."""
         self._tracker_id = tracker_id
         self._data = data or {}
@@ -51,20 +51,25 @@ class GeoRideLockSwitchEntity(SwitchEntity):
         self._is_on = data.is_locked
         self.entity_id = ENTITY_ID_FORMAT.format("lock") +"." + str(tracker_id)
         self._state = {}
+        self._hass = hass
+    
 
-
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         """ lock the GeoRide tracker """
         _LOGGER.info('async_turn_on %s', kwargs)
-        success = GeoRideApi.lock_tracker(await self._get_token_callback(), self._tracker_id)
+        token = await self._get_token_callback()
+        success = await self._hass.async_add_executor_job(GeoRideApi.lock_tracker,
+                                                          token, self._tracker_id)
         if success:
             self._data.is_locked = True
             self._is_on = True
             
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         """ unlock the GeoRide tracker """
         _LOGGER.info('async_turn_off %s', kwargs)
-        success = GeoRideApi.unlock_tracker(await self._get_token_callback(), self._tracker_id)
+        token = await self._get_token_callback()
+        success = await self._hass.async_add_executor_job(GeoRideApi.unlock_tracker,
+                                                          token, self._tracker_id)
         if success:
             self._data.is_locked = False
             self._is_on = False
@@ -72,8 +77,9 @@ class GeoRideLockSwitchEntity(SwitchEntity):
     async def async_toggle(self, **kwargs):
         """ toggle lock the georide tracker """
         _LOGGER.info('async_toggle %s', kwargs)
-        result = await GeoRideApi.toogle_lock_tracker(await self._get_token_callback(),
-                                                self._tracker_id)
+        token = await self._get_token_callback()
+        result = await self._hass.async_add_executor_job(GeoRideApi.toogle_lock_tracker,
+                                                         token, self._tracker_id)
         self._data.is_locked = result
         self._is_on = result     
 

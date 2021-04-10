@@ -23,11 +23,15 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     binary_sensor_entities = []
     for tracker in trackers:
-        stolen_entity = GeoRideStolenBinarySensorEntity(tracker.tracker_id, georide_context.get_token,
-                                                  georide_context.get_tracker, data=tracker)
+        stolen_entity = GeoRideStolenBinarySensorEntity(hass, tracker.tracker_id,
+                                                        georide_context.get_token,
+                                                        georide_context.get_tracker,
+                                                        data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = stolen_entity
-        crashed_entity = GeoRideCrashedBinarySensorEntity(tracker.tracker_id, georide_context.get_token,
-                                                  georide_context.get_tracker, data=tracker)
+        crashed_entity = GeoRideCrashedBinarySensorEntity(hass, tracker.tracker_id,
+                                                          georide_context.get_token,
+                                                          georide_context.get_tracker,
+                                                          data=tracker)
         hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = crashed_entity
         binary_sensor_entities.append(stolen_entity)
         binary_sensor_entities.append(crashed_entity)
@@ -38,7 +42,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 class GeoRideStolenBinarySensorEntity(BinarySensorEntity):
     """Represent a tracked device."""
 
-    def __init__(self, tracker_id, get_token_callback, get_tracker_callback, data):
+    def __init__(self, hass, tracker_id, get_token_callback, get_tracker_callback, data):
         """Set up Georide entity."""
         self._tracker_id = tracker_id
         self._data = data or {}
@@ -48,6 +52,7 @@ class GeoRideStolenBinarySensorEntity(BinarySensorEntity):
 
         self.entity_id = ENTITY_ID_FORMAT.format("is_stolen") + "." + str(tracker_id)
         self._state = 0
+        self._hass = hass
 
 
     async def async_update(self):
@@ -95,7 +100,7 @@ class GeoRideStolenBinarySensorEntity(BinarySensorEntity):
 class GeoRideCrashedBinarySensorEntity(BinarySensorEntity):
     """Represent a tracked device."""
 
-    def __init__(self, tracker_id, get_token_callback, get_tracker_callback, data):
+    def __init__(self, hass, tracker_id, get_token_callback, get_tracker_callback, data):
         """Set up Georide entity."""
         self._tracker_id = tracker_id
         self._data = data or {}
@@ -105,6 +110,7 @@ class GeoRideCrashedBinarySensorEntity(BinarySensorEntity):
 
         self.entity_id = ENTITY_ID_FORMAT.format("is_crashed") + "." + str(tracker_id)
         self._state = 0
+        self._hass = hass
 
 
     async def async_update(self):

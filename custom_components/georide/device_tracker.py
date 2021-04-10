@@ -28,7 +28,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     
     tracker_entities = []
     for tracker in trackers:
-        entity = GeoRideTrackerEntity(tracker.tracker_id, georide_context.get_token,
+        entity = GeoRideTrackerEntity(hass, tracker.tracker_id, georide_context.get_token,
                                       georide_context.get_tracker, tracker)
 
 
@@ -43,7 +43,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 class GeoRideTrackerEntity(TrackerEntity):
     """Represent a tracked device."""
 
-    def __init__(self, tracker_id, get_token_callback, get_tracker_callback, tracker):
+    def __init__(self, hass, tracker_id, get_token_callback, get_tracker_callback, tracker):
         """Set up GeoRide entity."""
         self._tracker_id = tracker_id
         self._get_token_callback = get_token_callback
@@ -51,6 +51,7 @@ class GeoRideTrackerEntity(TrackerEntity):
         self._name = tracker.tracker_name
         self._data = tracker or {}
         self.entity_id = DOMAIN + ".{}".format(tracker_id)
+        self._hass = hass
 
     @property
     def unique_id(self):

@@ -50,7 +50,6 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
         super().__init__(coordinator)
         self._tracker = tracker
         self._name = tracker.tracker_name
-        self._is_on = tracker.is_locked
         self.entity_id = ENTITY_ID_FORMAT.format("lock") +"." + str(tracker.tracker_id)
         self._hass = hass
     
@@ -64,7 +63,6 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
                                                       token, self._tracker_id)
         if success:
             self._tracker.is_locked = True
-            self._is_on = True
             
     async def async_turn_off(self, **kwargs):
         """ unlock the GeoRide tracker """
@@ -75,7 +73,6 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
                                                           token, self._tracker_id)
         if success:
             self._tracker.is_locked = False
-            self._is_on = False
 
     async def async_toggle(self, **kwargs):
         """ toggle lock the georide tracker """
@@ -85,13 +82,6 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
         result = await self._hass.async_add_executor_job(GeoRideApi.toogle_lock_tracker,
                                                          token, self._tracker_id)
         self._tracker.is_locked = result
-        self._is_on = result     
-
-    async def async_update(self):
-        """ update the current tracker"""
-        _LOGGER.debug('update')
-        self._name = self._tracker.tracker_name
-        self._is_on = self._tracker.is_lockedtracker
 
     @property
     def unique_id(self):
@@ -106,12 +96,12 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
     @property
     def is_on(self):
         """ GeoRide switch status """
-        return self._is_on
+        return self._tracker.is_locked
 
     @property
     def icon(self):
         """return the entity icon"""
-        if self._is_on:
+        if self._tracker.tracker_id:
             return "mdi:lock"
         return "mdi:lock-open"
     

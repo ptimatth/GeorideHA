@@ -49,7 +49,7 @@ class GeoRideTrackerEntity(CoordinatorEntity, TrackerEntity):
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return self._tracker_id
+        return self._tracker.tracker_id
 
     @property
     def name(self):
@@ -59,14 +59,14 @@ class GeoRideTrackerEntity(CoordinatorEntity, TrackerEntity):
     @property
     def latitude(self):
         """Return latitude value of the device."""
-        if self._data.latitude:
+        if self._tracker.latitude:
             return self._tracker.latitude
         return None
 
     @property
     def longitude(self):
         """Return longitude value of the device."""
-        if self._data.longitude:
+        if self._tracker.longitude:
             return self._tracker.longitude
 
         return None
@@ -86,6 +86,9 @@ class GeoRideTrackerEntity(CoordinatorEntity, TrackerEntity):
         """return the entity icon"""
         return "mdi:map-marker"
     
+    async def async_update(self):
+        """ update the current tracker"""
+        _LOGGER.debug('update')
 
     @property
     def device_info(self):

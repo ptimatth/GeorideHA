@@ -23,7 +23,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     _LOGGER.debug('Current GeoRide token: %s', token)
 
         
-    trackers = GeoRideApi.get_trackers(token)
+    trackers = await GeoRideApi.get_trackers(token)
 
     
     tracker_entities = []

@@ -21,7 +21,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     if token is None:
         return False
 
-    trackers = GeoRideApi.get_trackers(token)
+    trackers = await GeoRideApi.get_trackers(token)
 
     odometer_switch_entities = []
     for tracker in trackers:

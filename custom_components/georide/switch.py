@@ -58,7 +58,7 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
         success = await self._hass.async_add_executor_job(GeoRideApi.lock_tracker,
                                                           token, self._tracker_device.tracker.tracker_id)
         if success:
-            self._tracker.is_locked = True
+            self._tracker_device.tracker.is_locked = True
 
     async def async_turn_off(self, **kwargs):
         """ unlock the GeoRide tracker """
@@ -68,7 +68,7 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
         success = await self._hass.async_add_executor_job(GeoRideApi.unlock_tracker,
                                                           token, self._tracker_device.tracker.tracker_id)
         if success:
-            self._tracker.is_locked = False
+            self._tracker_device.tracker.is_locked = False
 
     async def async_toggle(self, **kwargs):
         """ toggle lock the georide tracker """
@@ -77,7 +77,7 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
         token = await georide_context.get_token()
         result = await self._hass.async_add_executor_job(GeoRideApi.toogle_lock_tracker,
                                                          token, self._tracker_device.tracker.tracker_id)
-        self._tracker.is_locked = result
+        self._tracker_device.tracker.is_locked = result
 
     @property
     def unique_id(self):

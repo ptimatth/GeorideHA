@@ -287,6 +287,13 @@ class GeoRideContext:
                 tracker.locked_latitude = data['lockedLatitude']
                 tracker.locked_longitude = data['lockedLongitude']
                 tracker.is_locked = data['isLocked']
+
+                event_data = {
+                    "device_id": tracker.tracker_id,
+                    "type": "on_lock",
+                }
+                self._hass.bus.async_fire(f"{DOMAIN}_event", event_data)
+
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
                 ).result()
@@ -302,6 +309,13 @@ class GeoRideContext:
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
                 tracker.status = data['status']
+
+                event_data = {
+                    "device_id": tracker.tracker_id,
+                    "type": "on_device",
+                }
+                self._hass.bus.async_fire(f"{DOMAIN}_event", event_data)
+
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
                 ).result()
@@ -334,7 +348,7 @@ class GeoRideContext:
 
                 event_data = {
                     "device_id": tracker.tracker_id,
-                    "type": data.name,
+                    "type": f"alarm_{data.name}",
                 }
                 self._hass.bus.async_fire(f"{DOMAIN}_event", event_data)
                 asyncio.run_coroutine_threadsafe(
@@ -355,6 +369,12 @@ class GeoRideContext:
                 tracker.moving = data['moving']
                 tracker.speed = data['speed']
                 tracker.fixtime = data['fixtime']
+
+                event_data = {
+                    "device_id": tracker.tracker_id,
+                    "type": "position",
+                }
+                self._hass.bus.async_fire(f"{DOMAIN}_event", event_data)
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
                 ).result()

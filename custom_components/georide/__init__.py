@@ -31,6 +31,8 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
+
+from .device import Device
 from .const import (
     CONF_EMAIL,
     CONF_PASSWORD,
@@ -62,7 +64,7 @@ async def async_setup(hass, config):
     hass.data[DOMAIN] = {"config": config[DOMAIN], "devices": {}, "unsub": None}
     hass.async_create_task(
         hass.config_entries.flow.async_init(
-            DOMAIN, 
+            DOMAIN,
             context={
                 "source": config_entries.SOURCE_IMPORT
             },
@@ -86,7 +88,7 @@ async def async_setup_entry(hass, entry):
         password,
         token
     )
-    
+
     _LOGGER.info("Context-setup and start the thread")
     _LOGGER.info("Thread started")
 
@@ -147,7 +149,7 @@ class GeoRideContext:
     def email(self):
         """ current email """
         return self._email
-    
+
     @property
     def password(self):
         """ password """
@@ -224,9 +226,9 @@ class GeoRideContext:
         """Used to refresh the tracker list"""
         _LOGGER.info("Tracker list refresh")
         new_georide_trackers = await self._hass.async_add_executor_job(GeoRideApi.get_trackers,
-                                                                     await self.get_token())
+                                                                       await self.get_token())
         for refreshed_tracker in new_georide_trackers:
-            found = False 
+            found = False
             for tracker in self._georide_trackers:
                 if tracker.tracker_id == refreshed_tracker.tracker_id:
                     tracker.update_all_data(refreshed_tracker)
@@ -256,7 +258,7 @@ class GeoRideContext:
                 update_interval=update_interval
             )
             self._georide_trackers_coordoned.append({
-                    "tracker": tracker,
+                    "tracker_device": Device(tracker),
                     "coordinator": coordinator
                 })
 
@@ -270,7 +272,7 @@ class GeoRideContext:
     def socket(self):
         """ hold the GeoRide socket """
         return self._socket
-    
+
     @socket.setter
     def socket(self, socket):
         """set the GeoRide socket"""
@@ -281,7 +283,7 @@ class GeoRideContext:
         """on lock callback"""
         _LOGGER.info("On lock received")
         for coordoned_tracker in self._georide_trackers_coordoned:
-            tracker = coordoned_tracker['tracker']
+            tracker = coordoned_tracker['tracker_device'].tracker
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
                 tracker.locked_latitude = data['lockedLatitude']
@@ -298,7 +300,7 @@ class GeoRideContext:
         """on device callback"""
         _LOGGER.info("On device received")
         for coordoned_tracker in self._georide_trackers_coordoned:
-            tracker = coordoned_tracker['tracker']
+            tracker = coordoned_tracker['tracker_device'].tracker
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
                 tracker.status = data['status']
@@ -312,7 +314,7 @@ class GeoRideContext:
         """on device callback"""
         _LOGGER.info("On alarm received")
         for coordoned_tracker in self._georide_trackers_coordoned:
-            tracker = coordoned_tracker['tracker']
+            tracker = coordoned_tracker['tracker_device'].tracker
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
                 if data.name == 'vibration':
@@ -330,7 +332,13 @@ class GeoRideContext:
                 elif data.name == 'powerCut':
                     _LOGGER.info("powerCut detected")
                 else:
-                    _LOGGER.warning("Unamanged alarm: ", data.name)
+                    _LOGGER.warning("Unamanged alarm: %s", data.name)
+
+                event_data = {
+                    "device_id": tracker.tracker_id,
+                    "type": data.name,
+                }
+                self._hass.bus.async_fire(f"{DOMAIN}_event", event_data)
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
                 ).result()
@@ -341,7 +349,7 @@ class GeoRideContext:
         """on position callback"""
         _LOGGER.info("On position received")
         for coordoned_tracker in self._georide_trackers_coordoned:
-            tracker = coordoned_tracker['tracker']
+            tracker = coordoned_tracker['tracker_device'].tracker
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
                 tracker.latitude = data['latitude']
@@ -353,5 +361,4 @@ class GeoRideContext:
                     coordinator.async_request_refresh(), self._hass.loop
                 ).result()
                 break
-
 

@@ -11,9 +11,8 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-import georideapilib.api as GeoRideApi
-
 from .const import DOMAIN as GEORIDE_DOMAIN
+from .device import Device
 
 
 _LOGGER = logging.getLogger(__name__) 
@@ -26,10 +25,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     entities = []
     for coordoned_tracker in coordoned_trackers:
-        tracker = coordoned_tracker['tracker']
+        tracker_device = coordoned_tracker['tracker_device']
         coordinator = coordoned_tracker['coordinator']
-        entity = GeoRideOdometerSensorEntity(coordinator, tracker, hass)
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = coordinator
+        entity = GeoRideOdometerSensorEntity(coordinator, tracker_device, hass)
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
         entities.append(entity)
 
     async_add_entities(entities)
@@ -39,48 +38,44 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 class GeoRideOdometerSensorEntity(CoordinatorEntity, SensorEntity):
     """Represent a tracked device."""
 
-    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]], tracker, hass):
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker_device:Device, hass):
         """Set up GeoRide entity."""
         super().__init__(coordinator)
-        self._tracker = tracker
-        self._name = tracker.tracker_name
+        self._tracker_device = tracker_device
+        self._name = tracker_device.tracker.tracker_name
         self._unit_of_measurement = "m"
-        self.entity_id = ENTITY_ID_FORMAT.format("odometer") + "." + str(tracker.tracker_id)
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('odometer')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+
         self._state = 0
         self._hass = hass
 
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return self._tracker.tracker_id
-
-    @property
-    def name(self):
-        """ GeoRide odometer name """
-        return self._tracker.tracker_name
+        return self._tracker_device.tracker.tracker_id
 
     @property
     def state(self):
         """state property"""
-        return self._tracker.odometer
+        return self._tracker_device.tracker.odometer
 
     @property
     def unit_of_measurement(self):
         """unit of mesurment property"""
         return self._unit_of_measurement
-    
+
+    @property
+    def name(self):
+        """ GeoRide odometer name """
+        return f"{self._name} odometer"
+
     @property
     def icon(self):
         """icon getter"""
         return "mdi:counter"
-    
+
     @property
     def device_info(self):
         """Return the device info."""
-        return {
-            "name": self.name,
-            "identifiers": {(GEORIDE_DOMAIN, self._tracker.tracker_id)},
-            "manufacturer": "GeoRide"
-        }
-
-
+        return self._tracker_device.device_info()

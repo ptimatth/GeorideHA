@@ -5,13 +5,13 @@ from typing import Any, Mapping
 
 from homeassistant.components.device_tracker.const import DOMAIN, SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
+
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
 
-import georideapilib.api as GeoRideApi
-
+from .device import Device
 from .const import DOMAIN as GEORIDE_DOMAIN
 
 
@@ -24,10 +24,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 
     entities = []
     for coordoned_tracker in coordoned_trackers:
-        tracker = coordoned_tracker['tracker']
+        tracker_device = coordoned_tracker['tracker_device']
         coordinator = coordoned_tracker['coordinator']
-        entity = GeoRideTrackerEntity(coordinator, tracker, hass)
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = coordinator
+        entity = GeoRideTrackerEntity(coordinator, tracker_device, hass)
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
         entities.append(entity)
 
     async_add_entities(entities)
@@ -38,12 +38,13 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 class GeoRideTrackerEntity(CoordinatorEntity, TrackerEntity):
     """Represent a tracked device."""
 
-    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]], tracker, hass):
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker_device: Device, hass):
         """Set up GeoRide entity."""
         super().__init__(coordinator)
-        self._name = tracker.tracker_name
-        self._tracker = tracker
-        self.entity_id = DOMAIN + ".{}".format(tracker.tracker_id)
+        self._name = tracker_device.tracker.tracker_name
+        self._tracker_device = tracker_device
+        self.entity_id = DOMAIN + ".{}".format(tracker_device.tracker.tracker_id)
         self._hass = hass
 
     @property
@@ -53,29 +54,28 @@ class GeoRideTrackerEntity(CoordinatorEntity, TrackerEntity):
 
     @property
     def name(self):
-        """ame property"""
-        return self._name
-    
+        """ GeoRide odometer name """
+        return f"{self._name} position"
+
     @property
     def latitude(self):
         """Return latitude value of the device."""
-        if self._tracker.latitude:
-            return self._tracker.latitude
+        if self._tracker_device.tracker.latitude:
+            return self._tracker_device.tracker.latitude
         return None
 
     @property
     def longitude(self):
         """Return longitude value of the device."""
-        if self._tracker.longitude:
-            return self._tracker.longitude
-
+        if self._tracker_device.tracker.longitude:
+            return self._tracker_device.tracker.longitude
         return None
 
     @property
     def source_type(self):
         """Return the source type, eg gps or router, of the device."""
         return SOURCE_TYPE_GPS
-      
+
     @property
     def location_accuracy(self):
         """ return the gps accuracy of georide (could not be aquired, then 10) """
@@ -89,26 +89,4 @@ class GeoRideTrackerEntity(CoordinatorEntity, TrackerEntity):
     @property
     def device_info(self):
         """Return the device info."""
-        return {
-            "name": self.name,
-            "identifiers": {(GEORIDE_DOMAIN, self._tracker.tracker_id)},
-            "manufacturer": "GeoRide",
-            "odometer": "{} km".format(self._tracker.odometer)
-        }
-
-    @property
-    def get_tracker_callback(self):
-        """ get tracker callaback"""
-        return self._get_tracker_callback
-    
-    @property
-    def get_token_callback(self):
-        """ get token callaback"""
-        return self._get_token_callback
-    
-
-    @property
-    def should_poll(self):
-        """No polling needed."""
-        return True
-        
+        return self._tracker_device.device_info

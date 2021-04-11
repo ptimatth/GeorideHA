@@ -2,7 +2,6 @@
 
 import logging
 
-from datetime import timedelta
 from typing import Any, Mapping
 
 from homeassistant.core import callback
@@ -13,27 +12,26 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator
 )
 
-import georideapilib.api as GeoRideApi
-import georideapilib.objects as GeoRideTracker
 
 from .const import DOMAIN as GEORIDE_DOMAIN
+from .device import Device
 
-
-_LOGGER = logging.getLogger(__name__) 
+_LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up GeoRide tracker based off an entry."""
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]
     entities = []
     coordoned_trackers = georide_context.get_coordoned_trackers()
     for coordoned_tracker in coordoned_trackers:
-        tracker = coordoned_tracker['tracker']
+        tracker_device = coordoned_tracker['tracker_device']
         coordinator = coordoned_tracker['coordinator']
 
-        stolen_entity = GeoRideStolenBinarySensorEntity(coordinator, tracker)
-        crashed_entity = GeoRideCrashedBinarySensorEntity(coordinator, tracker)
-        entities.append(stolen_entity)
-        entities.append(crashed_entity)
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker.tracker_id] = coordinator
+        entities.append(GeoRideStolenBinarySensorEntity(coordinator, tracker_device))
+        entities.append(GeoRideCrashedBinarySensorEntity(coordinator, tracker_device))
+        entities.append(GeoRideOwnerBinarySensorEntity(coordinator, tracker_device))
+        entities.append(GeoRideActiveSubscriptionBinarySensorEntity(coordinator, tracker_device))
+
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
 
     async_add_entities(entities, True)
 
@@ -43,71 +41,117 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
 class GeoRideBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
     """Represent a tracked device."""
     def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
-                 tracker: GeoRideTracker):
+                 tracker_device: Device):
         """Set up Georide entity."""
         super().__init__(coordinator)
-        self._tracker = tracker
-        self._name = tracker.tracker_name
+        self._tracker_device = tracker_device
+        self._name = tracker_device.tracker.tracker_name
 
-        self.entity_id = ENTITY_ID_FORMAT.format("is_stolen") + "." + str(tracker.tracker_id)
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('binary_sensor')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._is_on = False
-
-    @property
-    def unique_id(self):
-        """Return the unique ID."""
-        return self._tracker.tracker_id
-
-    @property
-    def name(self):
-        """ GeoRide odometer name """
-        return self._name
 
     @property
     def device_info(self):
         """Return the device info."""
-        return {
-            "name": self.name,
-            "identifiers": {(GEORIDE_DOMAIN, self._tracker.tracker_id)},
-            "manufacturer": "GeoRide"
-        }
+        return self._tracker_device.device_info
 
 class GeoRideStolenBinarySensorEntity(GeoRideBinarySensorEntity):
     """Represent a tracked device."""
     def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
-                 tracker: GeoRideTracker):
+                 tracker_device: Device):
         """Set up Georide entity."""
-        super().__init__(coordinator, tracker)
-        self.entity_id = ENTITY_ID_FORMAT.format("is_stolen") + "." + str(tracker.tracker_id)
+        super().__init__(coordinator, tracker_device)
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_stolen')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return f"is_stolen_{self._tracker.tracker_id}"
-    
+        return f"is_stolen_{self._tracker_device.tracker.tracker_id}"
+
     @property
     def is_on(self):
         """state value property"""
-        return self._tracker.is_stolen
-  
+        return self._tracker_device.is_stolen
 
+    @property
+    def name(self):
+        """ GeoRide odometer name """
+        return f"{self._name} is stolen"
 
 
 class GeoRideCrashedBinarySensorEntity(GeoRideBinarySensorEntity):
     """Represent a tracked device."""
 
     def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
-                 tracker: GeoRideTracker):
+                 tracker_device: Device):
         """Set up Georide entity."""
-        super().__init__(coordinator, tracker)
-        self.entity_id = ENTITY_ID_FORMAT.format("is_crashed") + "." + str(tracker.tracker_id)
+        super().__init__(coordinator, tracker_device)
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_crashed')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return f"is_crashed_{self._tracker.tracker_id}"
-    
+        return f"is_crashed_{self._tracker_device.tracker.tracker_id}"
+
     @property
     def is_on(self):
         """state value property"""
-        return self._tracker.is_crashed
+        return self._tracker_device.tracker.is_crashed
+
+    @property
+    def name(self):
+        """ GeoRide odometer name """
+        return f"{self._name} is crashed"
+
+class GeoRideActiveSubscriptionBinarySensorEntity(GeoRideBinarySensorEntity):
+    """Represent a tracked device."""
+
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker_device: Device):
+        """Set up Georide entity."""
+        super().__init__(coordinator, tracker_device)
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_active_subscription_')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+
+    @property
+    def unique_id(self):
+        """Return the unique ID."""
+        return f"is_active_subscription_{self._tracker_device.tracker.tracker_id}"
+
+    @property
+    def is_on(self):
+        """state value property"""
+        if self._tracker.subscription_id is not None:
+            return True
+        return False
+
+    @property
+    def name(self):
+        """ GeoRide odometer name """
+        return f"{self._name} has an active subscription"
+
+class GeoRideOwnerBinarySensorEntity(GeoRideBinarySensorEntity):
+    """Represent a tracked device."""
+
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker_device: Device):
+        """Set up Georide entity."""
+        super().__init__(coordinator, tracker_device)
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_owner')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+
+    @property
+    def unique_id(self):
+        """Return the unique ID."""
+        return f"is_owner_{self._tracker_device.tracker.tracker_id}"
+
+    @property
+    def is_on(self):
+        """state value property"""
+        if self._tracker_device.tracker.role == "owner":
+            return True
+        return False
+
+    @property
+    def name(self):
+        """ GeoRide odometer name """
+        return f"{self._name} is own tracker"
   

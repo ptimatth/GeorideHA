@@ -7,13 +7,13 @@ import georideapilib.api as GeoRideApi
 import georideapilib.exception as GeoRideException
 
 
-from .const import CONF_EMAIL, CONF_PASSWORD, CONF_TOKEN
+from .const import CONF_EMAIL, CONF_PASSWORD, CONF_TOKEN, DOMAIN
 
 
 _LOGGER = logging.getLogger(__name__)
 
 @config_entries.HANDLERS.register("georide")
-class GeoRideConfigFlow(config_entries.ConfigFlow):
+class GeoRideConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """GeoRide config flow """
     
     async def async_step_user(self, user_input=None): #pylint: disable=W0613
@@ -54,7 +54,7 @@ class GeoRideConfigFlow(config_entries.ConfigFlow):
         password = user_input[CONF_PASSWORD]
         
         try:
-            account = GeoRideApi.get_authorisation_token(email, password)
+            account = await self.hass.async_add_executor_job(GeoRideApi.get_authorisation_token, email, password)
             data = {
                 CONF_EMAIL: email,
                 CONF_PASSWORD: password,

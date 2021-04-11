@@ -53,7 +53,7 @@ class GeoRideOdometerSensorEntity(CoordinatorEntity, SensorEntity):
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return self._tracker_device.tracker.tracker_id
+        return f"odometer_{self._tracker_device.tracker.tracker_id}"
 
     @property
     def state(self):
@@ -78,4 +78,4 @@ class GeoRideOdometerSensorEntity(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self):
         """Return the device info."""
-        return self._tracker_device.device_info()
+        return self._tracker_device.device_info

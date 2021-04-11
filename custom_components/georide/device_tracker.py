@@ -50,7 +50,7 @@ class GeoRideTrackerEntity(CoordinatorEntity, TrackerEntity):
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return f"georide_tracker_{self._tracker.tracker_id}"
+        return f"georide_tracker_{self._tracker_device.tracker.tracker_id}"
 
     @property
     def name(self):

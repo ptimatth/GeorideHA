@@ -11,9 +11,14 @@ class Device:
         self._tracker: GeoRideTracker = tracker
 
     @property
+    def tracker(self):
+        """return the tracker"""
+        return self._tracker
+
+    @property
     def name(self) -> str:
         """Get the name."""
-        return self._tracker.name
+        return self._tracker.tracker_name
 
     @property
     def manufacturer(self) -> str:

@@ -120,8 +120,6 @@ async def async_unload_entry(hass, entry):
     context = hass.data[DOMAIN]["context"]
     context.socket.disconnect()
 
-    hass.data[DOMAIN]["unsub"]()
-
     return True
 
 

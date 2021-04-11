@@ -71,7 +71,7 @@ class GeoRideStolenBinarySensorEntity(GeoRideBinarySensorEntity):
     @property
     def is_on(self):
         """state value property"""
-        return self._tracker_device.is_stolen
+        return self._tracker_device.tracker.is_stolen
 
     @property
     def name(self):
@@ -120,7 +120,7 @@ class GeoRideActiveSubscriptionBinarySensorEntity(GeoRideBinarySensorEntity):
     @property
     def is_on(self):
         """state value property"""
-        if self._tracker.subscription_id is not None:
+        if self._tracker_device.tracker.subscription_id is not None:
             return True
         return False
 

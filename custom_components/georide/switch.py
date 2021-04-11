@@ -82,7 +82,7 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return self._tracker.tracker_id
+        return f"lock_{self._tracker_device.tracker_id}"
 
     @property
     def name(self):
@@ -104,4 +104,4 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
     @property
     def device_info(self):
         """Return the device info."""
-        return self._tracker_device.device_info()
+        return self._tracker_device.device_info

@@ -4,10 +4,10 @@
   "config_flow": true,
   "documentation": "https://github.com/ptimatth/GeorideHA",
   "requirements": [
-    "georideapilib>=0.6.0",
+    "georideapilib>=0.6.1",
     "pyjwt>=1.7.1"
   ],
   "dependencies": [],
   "codeowners": ["ptimatth"],
-  "version": "0.6.1"
+  "version": "0.6.2"
 }

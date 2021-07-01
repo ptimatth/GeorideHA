@@ -4,5 +4,5 @@
   "render_readme": true,
   "domains": ["devices_tracker", "sensor"],
   "country": ["FR"],
-  "homeassistant": "2021.4.0"
+  "homeassistant": "2021.6.0"
 }

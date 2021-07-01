@@ -290,9 +290,9 @@ class GeoRideContext:
 
                 event_data = {
                     "device_id": tracker.tracker_id,
-                    "type": "on_lock",
+                    "device_name": tracker.tracker_name
                 }
-                self._hass.bus.async_fire(f"{DOMAIN}_event", event_data)
+                self._hass.bus.async_fire(f"{DOMAIN}_lock_event", event_data)
 
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
@@ -312,9 +312,9 @@ class GeoRideContext:
 
                 event_data = {
                     "device_id": tracker.tracker_id,
-                    "type": "on_device",
+                    "device_name": tracker.tracker_name,
                 }
-                self._hass.bus.async_fire(f"{DOMAIN}_event", event_data)
+                self._hass.bus.async_fire(f"{DOMAIN}_device_event", event_data)
 
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
@@ -343,14 +343,27 @@ class GeoRideContext:
                     _LOGGER.info("Device online detected")
                 elif data.name == 'powerCut':
                     _LOGGER.info("powerCut detected")
+                elif data.name == 'powerUncut':
+                    _LOGGER.info("powerUncut detected")
+                elif data.name == 'batteryWarning':
+                    _LOGGER.info("batteryWarning detected")
+                elif data.name == 'temperatureWarning':
+                    _LOGGER.info("temperatureWarning detected")
+                elif data.name == 'magnetOn':
+                    _LOGGER.info("magnetOn detected")
+                elif data.name == 'magnetOff':
+                    _LOGGER.info("magnetOff detected")
+                elif data.name == 'sonorAlarmOn':
+                    _LOGGER.info("sonorAlarmOn detected")
                 else:
-                    _LOGGER.warning("Unamanged alarm: %s", data.name)
+                    _LOGGER.warning("Unmanaged alarm: %s", data.name)
 
                 event_data = {
                     "device_id": tracker.tracker_id,
-                    "type": f"alarm_{data.name}",
+                    "device_name": tracker.tracker_name,
+                    "type": f"alarm_{data.name}"
                 }
-                self._hass.bus.async_fire(f"{DOMAIN}_event", event_data)
+                self._hass.bus.fire(f"{DOMAIN}_alarm_event", event_data)
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
                 ).result()
@@ -372,9 +385,9 @@ class GeoRideContext:
 
                 event_data = {
                     "device_id": tracker.tracker_id,
-                    "type": "position",
+                    "device_name": tracker.tracker_name
                 }
-                self._hass.bus.async_fire(f"{DOMAIN}_event", event_data)
+                self._hass.bus.async_fire(f"{DOMAIN}_position_event", event_data)
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
                 ).result()

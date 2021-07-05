@@ -363,7 +363,7 @@ class GeoRideContext:
                     "device_name": tracker.tracker_name,
                     "type": f"alarm_{data.name}"
                 }
-                self._hass.bus.fire(f"{DOMAIN}_alarm_event", event_data)
+                self._hass.bus.async_fire(f"{DOMAIN}_alarm_event", event_data)
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
                 ).result()

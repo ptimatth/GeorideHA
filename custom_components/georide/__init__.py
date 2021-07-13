@@ -329,39 +329,39 @@ class GeoRideContext:
             tracker = coordoned_tracker['tracker_device'].tracker
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
-                if data.name == 'vibration':
+                if data['name'] == 'vibration':
                     _LOGGER.info("Vibration detected")
-                elif data.name == 'exitZone':
+                elif data['name'] == 'exitZone':
                     _LOGGER.info("Exit zone detected")
-                elif data.name == 'crash':
+                elif data['name'] == 'crash':
                     _LOGGER.info("Crash detected")
-                elif data.name == 'crashParking':
+                elif data['name'] == 'crashParking':
                     _LOGGER.info("Crash parking detected")
-                elif data.name == 'deviceOffline':
+                elif data['name'] == 'deviceOffline':
                     _LOGGER.info("Device offline detected")
-                elif data.name == 'deviceOnline':
+                elif data['name'] == 'deviceOnline':
                     _LOGGER.info("Device online detected")
-                elif data.name == 'powerCut':
+                elif data['name'] == 'powerCut':
                     _LOGGER.info("powerCut detected")
-                elif data.name == 'powerUncut':
+                elif data['name'] == 'powerUncut':
                     _LOGGER.info("powerUncut detected")
-                elif data.name == 'batteryWarning':
+                elif data['name'] == 'batteryWarning':
                     _LOGGER.info("batteryWarning detected")
-                elif data.name == 'temperatureWarning':
+                elif data['name'] == 'temperatureWarning':
                     _LOGGER.info("temperatureWarning detected")
-                elif data.name == 'magnetOn':
+                elif data['name'] == 'magnetOn':
                     _LOGGER.info("magnetOn detected")
-                elif data.name == 'magnetOff':
+                elif data['name'] == 'magnetOff':
                     _LOGGER.info("magnetOff detected")
-                elif data.name == 'sonorAlarmOn':
+                elif data['name'] == 'sonorAlarmOn':
                     _LOGGER.info("sonorAlarmOn detected")
                 else:
-                    _LOGGER.warning("Unmanaged alarm: %s", data.name)
+                    _LOGGER.warning("Unmanaged alarm: %s", data["name"])
 
                 event_data = {
                     "device_id": tracker.tracker_id,
                     "device_name": tracker.tracker_name,
-                    "type": f"alarm_{data.name}"
+                    "type": f"alarm_{data['name']}"
                 }
                 self._hass.bus.async_fire(f"{DOMAIN}_alarm_event", event_data)
                 asyncio.run_coroutine_threadsafe(

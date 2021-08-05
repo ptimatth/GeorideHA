@@ -85,7 +85,7 @@ class GeoRideInternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
     """Represent a tracked device."""
 
     def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
-                 tracker_device:Device, hass):
+                 tracker_device:Device):
         """Set up GeoRide entity."""
         super().__init__(coordinator)
         self._tracker_device = tracker_device
@@ -129,7 +129,7 @@ class GeoRideExternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
     """Represent a tracked device."""
 
     def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
-                 tracker_device:Device, hass):
+                 tracker_device:Device):
         """Set up GeoRide entity."""
         super().__init__(coordinator)
         self._tracker_device = tracker_device

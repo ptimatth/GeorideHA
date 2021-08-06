@@ -30,6 +30,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
         entities.append(GeoRideCrashedBinarySensorEntity(coordinator, tracker_device))
         entities.append(GeoRideOwnerBinarySensorEntity(coordinator, tracker_device))
         entities.append(GeoRideActiveSubscriptionBinarySensorEntity(coordinator, tracker_device))
+        entities.append(GeoRideNetworkBinarySensorEntity(coordinator, tracker_device))
 
         hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
 
@@ -154,4 +155,35 @@ class GeoRideOwnerBinarySensorEntity(GeoRideBinarySensorEntity):
     def name(self):
         """ GeoRide odometer name """
         return f"{self._name} is own tracker"
+    
+class GeoRideNetworkBinarySensorEntity(GeoRideBinarySensorEntity):
+    """Represent a tracked device."""
+
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker_device: Device):
+        """Set up Georide entity."""
+        super().__init__(coordinator, tracker_device)
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('have_network')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+
+    @property
+    def unique_id(self):
+        """Return the unique ID."""
+        return f"have_network_{self._tracker_device.tracker.tracker_id}"
+    
+    @property
+    def device_class(self):
+        """Return the device class."""
+        return f"connectivity"
+
+    @property
+    def is_on(self):
+        """state value property"""
+        if self._tracker_device.tracker.status == "online":
+            return True
+        return False
+
+    @property
+    def name(self):
+        """ GeoRide name """
+        return f"{self._name} have_network"
   

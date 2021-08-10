@@ -46,7 +46,7 @@ class GeoRideOdometerSensorEntity(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
-        self._unit_of_measurement = "m"
+        self._unit_of_measurement = "km"
         self.entity_id = f"{ENTITY_ID_FORMAT.format('odometer')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
         self._state = 0
@@ -60,7 +60,8 @@ class GeoRideOdometerSensorEntity(CoordinatorEntity, SensorEntity):
     @property
     def state(self):
         """state property"""
-        return self._tracker_device.tracker.odometer
+        odometer = self._tracker_device.tracker.odometer //1000
+        return odometer
 
     @property
     def unit_of_measurement(self):

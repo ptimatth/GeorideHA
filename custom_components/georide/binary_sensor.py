@@ -166,7 +166,7 @@ class GeoRideOwnerBinarySensorEntity(GeoRideBinarySensorEntity):
     def name(self):
         """ GeoRide odometer name """
         return f"{self._name} is own tracker"
-  
+
 class GeoRideNetworkBinarySensorEntity(GeoRideBinarySensorEntity):
     """Represent a tracked device."""
 

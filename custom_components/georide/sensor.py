@@ -31,6 +31,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
         entities.append(GeoRideOdometerSensorEntity(coordinator, tracker_device, hass))
         entities.append(GeoRideInternalBatterySensorEntity(coordinator, tracker_device))
         entities.append(GeoRideExternalBatterySensorEntity(coordinator, tracker_device))
+        entities.append(GeoRideFixtimeSensorEntity(coordinator, tracker_device))
 
     async_add_entities(entities)
 
@@ -118,7 +119,7 @@ class GeoRideInternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
     @property
     def icon(self):
         """icon getter"""
-        return "mdi:counter"
+        return "mdi:battery"
 
     @property
     def device_info(self):
@@ -162,10 +163,48 @@ class GeoRideExternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
     @property
     def icon(self):
         """icon getter"""
-        return "mdi:counter"
+        return "mdi:battery"
 
     @property
     def device_info(self):
         """Return the device info."""
         return self._tracker_device.device_info
     
+class GeoRideFixtimeSensorEntity(CoordinatorEntity, SensorEntity):
+    """Represent a tracked device."""
+
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker_device:Device):
+        """Set up GeoRide entity."""
+        super().__init__(coordinator)
+        self._tracker_device = tracker_device
+        self._name = tracker_device.tracker.tracker_name
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('fixtime')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+
+        self._state = 0
+        self._device_class = "timestamp"
+
+    @property
+    def unique_id(self):
+        """Return the unique ID."""
+        return f"fixtime_{self._tracker_device.tracker.tracker_id}"
+
+    @property
+    def state(self):
+        """state property"""
+        return self._tracker_device.tracker.fixtime
+
+    @property
+    def name(self):
+        """ GeoRide fixtime name """
+        return f"{self._name} last fixed position"
+    
+    @property
+    def icon(self):
+        """icon getter"""
+        return "mdi:map-clock"
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return self._tracker_device.device_info

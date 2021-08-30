@@ -15,12 +15,15 @@ This component add some sensor for GeoRide Tracker
     Get GeoRide position
     Get GeoRide lock status
     Change GeoRide lock status
-    Add GeoRide from configuration.yml
-    Add GeoRide from interface
     Get stollen status
     Get crashed status
     Get is owner status
     Get subsription status
+    Get odomoter to km an m (2 entities)
+    Internal battery (of georide 3) (not work on GR1)
+    External battery (of the bike) (not work on GR1)
+    Fixtime (last registered positition of the georide)
+
 
 ### What's events are available:
 you can filter by data.device_id == XX (XX is your tracker id)
@@ -53,7 +56,7 @@ here is the alarm type available: (listen the georide_alarm_event)
  
 ## Question:
 
-### How to have the odometer in Km ?
+### How to have the odometer in Km ? (Deprecated, now you have an entity - thx @Inervo)
 
 Simply add a sensor like this in configuration.yaml
 (Replace XX by your tracker id)
@@ -66,8 +69,6 @@ sensor:
         friendly_name: "Odometter - Km"
         value_template: "{{ states.sensor.odometer_XX.state | multiply(0.001) | round(3, 'flour') }}"
         unit_of_measurement: 'Km'
-
-
 ```
 
 ### How to use the event:

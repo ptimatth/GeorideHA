@@ -184,7 +184,7 @@ class GeoRideContext:
 
     async def get_token(self):
         """ here we return the current valid tocken """
-        jwt_data = jwt.decode(self._token, verify=False)
+        jwt_data = jwt.decode(self._token, options={"verify_signature": False})
         exp_timestamp = jwt_data['exp']
 
         epoch = math.ceil(time.time())

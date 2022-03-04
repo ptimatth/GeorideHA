@@ -1,5 +1,5 @@
 """Home Assistant representation of an GeoRide Tracker device."""
-import georideapilib.objects as GeoRideTracker, GeoRideTrackerBeacon
+from georideapilib.objects import GeoRideTracker, GeoRideTrackerBeacon
 from .const import DOMAIN as GEORIDE_DOMAIN
 
 

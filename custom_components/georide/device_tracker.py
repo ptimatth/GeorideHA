@@ -48,6 +48,10 @@ class GeoRideTrackerEntity(CoordinatorEntity, TrackerEntity):
         self._hass = hass
 
     @property
+    def entity_category(self):
+        return None
+
+    @property
     def unique_id(self):
         """Return the unique ID."""
         return f"georide_tracker_{self._tracker_device.tracker.tracker_id}"

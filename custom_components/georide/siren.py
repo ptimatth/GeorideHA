@@ -50,6 +50,10 @@ class GeoRideSirenEntity(CoordinatorEntity, SirenEntity):
         self.entity_id = f"{ENTITY_ID_FORMAT.format('eco_mode')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._hass = hass
 
+    @property
+    def entity_category(self):
+        return None
+
     async def async_turn_on(self, **kwargs):
         """ lock the GeoRide tracker """
         _LOGGER.info('async_turn_on eco %s', kwargs)

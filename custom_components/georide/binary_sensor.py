@@ -5,6 +5,7 @@ import logging
 from typing import Any, Mapping
 
 from homeassistant.core import callback
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.binary_sensor import ENTITY_ID_FORMAT
 from homeassistant.helpers.update_coordinator import (
@@ -75,6 +76,10 @@ class GeoRideBeaconBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
         self._name = tracker_device_beacon.beacon.name
         self.entity_id = f"{ENTITY_ID_FORMAT.format('binary_sensor')}.{tracker_device.beacon.beacon_id}"# pylint: disable=C0301
         self._is_on = False
+
+    @property
+    def entity_category(self):
+        return None
 
     @property
     def device_info(self):
@@ -149,6 +154,10 @@ class GeoRideActiveSubscriptionBinarySensorEntity(GeoRideBinarySensorEntity):
         self.entity_id = f"{ENTITY_ID_FORMAT.format('is_active_subscription_')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
+    def entity_category(self):
+        return EntityCategory.DIAGNOSTIC
+
+    @property
     def unique_id(self):
         """Return the unique ID."""
         return f"is_active_subscription_{self._tracker_device.tracker.tracker_id}"
@@ -207,6 +216,10 @@ class GeoRideNetworkBinarySensorEntity(GeoRideBinarySensorEntity):
         self.entity_id = f"{ENTITY_ID_FORMAT.format('have_network')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
+    def entity_category(self):
+        return EntityCategory.DIAGNOSTIC
+
+    @property
     def unique_id(self):
         """Return the unique ID."""
         return f"have_network_{self._tracker_device.tracker.tracker_id}"
@@ -259,6 +272,9 @@ class GeoRideMovingBinarySensorEntity(GeoRideBinarySensorEntity):
 
 class GeoRideBeaconUpdatedBinarySensorEntity(GeoRideBeaconBinarySensorEntity):
     """Represent a tracked device."""
+    @property
+    def entity_category(self):
+        return EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
                  tracker_beacon_device: DeviceBeacon):

@@ -285,7 +285,7 @@ class GeoRideBeaconUpdatedBinarySensorEntity(GeoRideBeaconBinarySensorEntity):
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return f"update_{self._tracker_beacon_device.beacon.beacon_id}"
+        return f"update_{self._tracker_device_beacon.beacon.beacon_id}"
 
     @property
     def device_class(self):
@@ -295,7 +295,7 @@ class GeoRideBeaconUpdatedBinarySensorEntity(GeoRideBeaconBinarySensorEntity):
     @property
     def is_on(self):
         """state value property"""
-        return not self._tracker_beacon_device.beacon.is_updated
+        return not self._tracker_device_beacon.beacon.is_updated
 
     @property
     def name(self):

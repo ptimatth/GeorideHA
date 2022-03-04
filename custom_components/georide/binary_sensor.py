@@ -279,7 +279,7 @@ class GeoRideBeaconUpdatedBinarySensorEntity(GeoRideBeaconBinarySensorEntity):
     def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
                  tracker_beacon_device: DeviceBeacon):
         """Set up Georide entity."""
-        super().__init__(coordinator, tracker_device)
+        super().__init__(coordinator, tracker_beacon_device)
         self.entity_id = f"{ENTITY_ID_FORMAT.format('update')}.{tracker_beacon_device.tracker_beacon.beacon_id}"# pylint: disable=C0301
 
     @property

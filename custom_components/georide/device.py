@@ -44,7 +44,7 @@ class Device:
         """Return the device info."""
         return {
             "name": self.name,
-            "identifiers": {(GEORIDE_DOMAIN, self._tracker.tracker_id)},
+            "identifiers": self.unique_id,
             "manufacturer": "GeoRide",
             "model": self.model_name,
             "suggested_area": "Garage"
@@ -54,7 +54,7 @@ class Device:
     @property
     def unique_id(self) -> str:
         """Get the unique id."""
-        return {(GEORIDE_DOMAIN, self._tracker.tracker_id)}
+        return f"{GEORIDE_DOMAIN}_{self._tracker.tracker_id}"
 
     def __str__(self) -> str:
         """Get string representation."""
@@ -93,17 +93,17 @@ class DeviceBeacon:
         """Return the device info."""
         return {
             "name": self.name,
-            "identifiers": {(GEORIDE_DOMAIN, self._beacon.beacon_id)},
+            "identifiers": self.unique_id,
             "manufacturer": "GeoRide",
             "model": self.model_name,
             "suggested_area": "Garage"
         }
 
-
     @property
     def unique_id(self) -> str:
         """Get the unique id."""
-        return {(GEORIDE_DOMAIN, "beacon", self._beacon.beacon_id)}
+        
+        return f"{GEORIDE_DOMAIN}_beacon_{self._tracker.tracker_id}"
 
     def __str__(self) -> str:
         """Get string representation."""

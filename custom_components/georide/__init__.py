@@ -239,6 +239,10 @@ class GeoRideContext:
             if tracker.is_siren_on:
                 if time.time() - SIREN_ACTIVATION_DELAY > tracker.siren_last_on_date:
                     tracker.is_siren_on = False
+    
+    async def refresh_trackers_beacon(self):
+        """ here we return last tracker by id"""
+        _LOGGER.debug("Do nothing, updated by another way")
 
     async def force_refresh_trackers(self):
         """Used to refresh the tracker list"""
@@ -282,6 +286,8 @@ class GeoRideContext:
             self._thread_started = True
             await self.connect_socket()
 
+
+
     async def init_context(self, hass):
         """Used to refresh the tracker list"""
         _LOGGER.info("Init_context")
@@ -307,7 +313,9 @@ class GeoRideContext:
                     beacon_coordinator = DataUpdateCoordinator[Mapping[str, Any]](
                         hass,
                         _LOGGER,
-                        name= tracker_beacon.name
+                        name=tracker_beacon.name
+                        update_method=self.refresh_trackers_beacon,
+                        update_interval=update_interval
                     )
                     coordoned_beacon = {
                         "tracker_beacon": DeviceBeacon(tracker_beacon),

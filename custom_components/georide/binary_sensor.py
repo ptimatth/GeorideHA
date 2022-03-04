@@ -280,7 +280,7 @@ class GeoRideBeaconUpdatedBinarySensorEntity(GeoRideBeaconBinarySensorEntity):
                  tracker_beacon_device: DeviceBeacon):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_beacon_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('update')}.{tracker_beacon_device.tracker_beacon.beacon_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('update')}.{tracker_beacon_device.beacon.beacon_id}"# pylint: disable=C0301
 
     @property
     def unique_id(self):

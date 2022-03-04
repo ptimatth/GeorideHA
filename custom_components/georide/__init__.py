@@ -40,7 +40,8 @@ from .const import (
     TRACKER_ID,
     TOKEN_SAFE_DAY,
     MIN_UNTIL_REFRESH,
-    DOMAIN
+    DOMAIN,
+    SIREN_ACTIVATION_DELAY
 )
 
 
@@ -105,6 +106,8 @@ async def async_setup_entry(hass, entry):
         hass.config_entries.async_forward_entry_setup(entry, "sensor"))
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "binary_sensor"))
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "siren"))
     return True
 
 
@@ -115,6 +118,7 @@ async def async_unload_entry(hass, entry):
     await hass.config_entries.async_forward_entry_unload(entry, "switch")
     await hass.config_entries.async_forward_entry_unload(entry, "sensor")
     await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
+    await hass.config_entries.async_forward_entry_unload(entry, "siren")
 
 
     context = hass.data[DOMAIN]["context"]
@@ -133,6 +137,8 @@ class GeoRideContext:
         self._email = email
         self._password = password
         self._georide_trackers_coordoned = []
+        self._georide_trackers_beacon_coordoned = []
+        self._georide_trackers_beacon = []
         self._georide_trackers = []
         self._token = token
         self._socket = None
@@ -176,7 +182,6 @@ class GeoRideContext:
         socket.subscribe_device(self.on_device_callback)
         socket.subscribe_position(self.on_position_callback)
         socket.subscribe_alarm(self.on_alarm_callback)
-
         self._socket = socket
 
         socket.init()
@@ -208,17 +213,31 @@ class GeoRideContext:
                 return tracker
         return {}
 
+    async def get_tracker_beacon(self, beacon_id):
+        """ here we return last tracker_beacon by id"""
+        for tracker_beacon in self._georide_trackers_beacon:
+            if tracker_beacon.beacon_id == beacon_id:
+                return tracker_beacon
+        return {}
+    
+    async def get_tracker_beacon_by_tracker_id(self, tracker_id):
+        """ here we return last tracker_beacon by id"""
+        for tracker_beacon in self._georide_trackers_beacon:
+            if tracker_beacon.linked_tracker_id == tracker_id:
+                return tracker_beacon
+        return {}
+
     async def refresh_trackers(self):
         """ here we return last tracker by id"""
         _LOGGER.debug("Call refresh tracker")
         epoch_min = math.floor(time.time()/60)
-        #if (epoch_min % MIN_UNTIL_REFRESH) == 0:
         if epoch_min != self._previous_refresh:
             self._previous_refresh = epoch_min
             await self.force_refresh_trackers()
-        #else:
-        #    _LOGGER.debug("We wil dont refresh the tracker list")
-
+        for tracker in self._georide_trackers:
+            if tracker.is_siren_on:
+                if time.time() - SIREN_ACTIVATION_DELAY > tracker.siren_last_on_date:
+                    tracker.is_siren_on = False
 
     async def force_refresh_trackers(self):
         """Used to refresh the tracker list"""
@@ -230,16 +249,37 @@ class GeoRideContext:
             for tracker in self._georide_trackers:
                 if tracker.tracker_id == refreshed_tracker.tracker_id:
                     tracker.update_all_data(refreshed_tracker)
+                    if tracker.version > 2:
+                        await force_refresh_trackers_beacon(tracker.tracker_id)
                     found = True
             if not found:
                 self._georide_trackers.append(refreshed_tracker)
+                if refreshed_tracker.version > 2:
+                    await force_refresh_trackers_beacon(tracker.tracker_id)
+    
         if not self._thread_started:
             _LOGGER.info("Start the thread")
             # We refresh the tracker list each hours
             self._thread_started = True
             await self.connect_socket()
 
-
+    async def force_refresh_trackers_beacon(self, tracker_id):
+        """Used to refresh the tracker list"""
+        _LOGGER.info("Tracker beacon refresh")
+        new_georide_tracker_beacon = await self._hass.async_add_executor_job(GeoRideApi.get_tracker_beacon,
+                                                                       await self.get_token(), tracker_id)
+        found = False
+        for tracker_beacon in self._georide_trackers_beacon:
+            if tracker_beacon.tracker_id == new_georide_tracker_beacon.beacon_id:
+                tracker_beacon.update_all_data(new_georide_tracker_beacon)
+                found = True
+        if not found:
+            self._georide_trackers_beacon.append(new_georide_tracker_beacon)
+        if not self._thread_started:
+            _LOGGER.info("Start the thread")
+            # We refresh the tracker list each hours
+            self._thread_started = True
+            await self.connect_socket()
 
     async def init_context(self, hass):
         """Used to refresh the tracker list"""
@@ -255,16 +295,37 @@ class GeoRideContext:
                 update_method=self.refresh_trackers,
                 update_interval=update_interval
             )
-            self._georide_trackers_coordoned.append({
-                    "tracker_device": Device(tracker),
+
+            coordoned_tracker = {
+                "tracker_device": Device(tracker),
+                "coordinator": coordinator
+            }
+            if tracker.version > 2:
+                tracker_beacon = await get_tracker_beacon_by_tracker_id(tracker.tracker_id)
+                beacon_coordinator = DataUpdateCoordinator[Mapping[str, Any]](
+                    hass,
+                    _LOGGER,
+                    name=tracker_beacon.name
+                )
+                coordoned_beacon = {
+                    "beacon_device": DeviceBeacon(tracker_beacon),
                     "coordinator": coordinator
-                })
+                }
+                self._georide_trackers_beacon_coordoned(coordoned_beacon)
+            self._georide_trackers_coordoned.append(coordoned_tracker)
 
 
-    def get_coordoned_trackers(self):
+    @property
+    def georide_trackers_coordoned(self):
         """Return coordoned trackers"""
 
         return self._georide_trackers_coordoned
+        
+    @property
+    def georide_trackers_beacon_coordoned(self):
+        """Return coordoned trackers"""
+
+        return self._georide_trackers_beacon_coordoned
 
     @property
     def socket(self):
@@ -281,7 +342,8 @@ class GeoRideContext:
         """on lock callback"""
         _LOGGER.info("On lock received")
         for coordoned_tracker in self._georide_trackers_coordoned:
-            tracker = coordoned_tracker['tracker_device'].tracker
+            tracker_device = coordoned_tracker['tracker_device']
+            tracker = tracker_device.tracker
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
                 tracker.locked_latitude = data['lockedLatitude']
@@ -289,8 +351,8 @@ class GeoRideContext:
                 tracker.is_locked = data['isLocked']
 
                 event_data = {
-                    "device_id": tracker.tracker_id,
-                    "device_name": tracker.tracker_name
+                    "device_id": tracker_device.unique_id,
+                    "device_name": tracker_device.name,
                 }
                 self._hass.bus.async_fire(f"{DOMAIN}_lock_event", event_data)
 
@@ -299,23 +361,21 @@ class GeoRideContext:
                 ).result()
                 break
 
-
     @callback
     def on_device_callback(self, data):
         """on device callback"""
         _LOGGER.info("On device received")
         for coordoned_tracker in self._georide_trackers_coordoned:
-            tracker = coordoned_tracker['tracker_device'].tracker
+            tracker_device = coordoned_tracker['tracker_device']
+            tracker = tracker_device.tracker
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
                 tracker.status = data['status']
-
                 event_data = {
-                    "device_id": tracker.tracker_id,
-                    "device_name": tracker.tracker_name,
+                    "device_id": tracker_device.unique_id,
+                    "device_name": tracker_device.name,
                 }
                 self._hass.bus.async_fire(f"{DOMAIN}_device_event", event_data)
-
                 asyncio.run_coroutine_threadsafe(
                     coordinator.async_request_refresh(), self._hass.loop
                 ).result()
@@ -326,7 +386,9 @@ class GeoRideContext:
         """on device callback"""
         _LOGGER.info("On alarm received")
         for coordoned_tracker in self._georide_trackers_coordoned:
-            tracker = coordoned_tracker['tracker_device'].tracker
+            tracker_device = coordoned_tracker['tracker_device']
+            tracker = tracker_device.tracker
+
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
                 if data['name'] == 'vibration':
@@ -355,12 +417,13 @@ class GeoRideContext:
                     _LOGGER.info("magnetOff detected")
                 elif data['name'] == 'sonorAlarmOn':
                     _LOGGER.info("sonorAlarmOn detected")
+                    tracker.is_siren_on = True
                 else:
                     _LOGGER.warning("Unmanaged alarm: %s", data["name"])
 
                 event_data = {
-                    "device_id": tracker.tracker_id,
-                    "device_name": tracker.tracker_name,
+                    "device_id": tracker_device.unique_id,
+                    "device_name": tracker_device.name,
                     "type": f"alarm_{data['name']}"
                 }
                 self._hass.bus.async_fire(f"{DOMAIN}_alarm_event", event_data)
@@ -384,8 +447,8 @@ class GeoRideContext:
                 tracker.fixtime = data['fixtime']
 
                 event_data = {
-                    "device_id": tracker.tracker_id,
-                    "device_name": tracker.tracker_name
+                    "device_id": tracker_device.unique_id,
+                    "device_name": tracker_device.name,
                 }
                 self._hass.bus.async_fire(f"{DOMAIN}_position_event", event_data)
                 asyncio.run_coroutine_threadsafe(

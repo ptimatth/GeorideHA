@@ -21,20 +21,28 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up GeoRide tracker based off an entry."""
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]
-    coordoned_trackers = georide_context.get_coordoned_trackers()
+    coordoned_trackers = georide_context.georide_trackers_coordoned
 
     entities = []
     for coordoned_tracker in coordoned_trackers:
         tracker_device = coordoned_tracker['tracker_device']
         coordinator = coordoned_tracker['coordinator']
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.unique_id] = coordinator
         entities.append(GeoRideOdometerSensorEntity(coordinator, tracker_device, hass))
         entities.append(GeoRideOdometerKmSensorEntity(coordinator, tracker_device, hass))
-        entities.append(GeoRideInternalBatterySensorEntity(coordinator, tracker_device))
-        entities.append(GeoRideExternalBatterySensorEntity(coordinator, tracker_device))
         entities.append(GeoRideFixtimeSensorEntity(coordinator, tracker_device))
+        if tracker_device.tracker.version > 2:
+            entities.append(GeoRideInternalBatterySensorEntity(coordinator, tracker_device))
+            entities.append(GeoRideExternalBatterySensorEntity(coordinator, tracker_device))
+    
+    coordoned_beacons = georide_context.georide_trackers_beacon_coordoned
+    for coordoned_beacon in coordoned_beacons:
+        tracker_beacon = coordoned_tracker['tracker_beacon']
+        coordinator = coordoned_tracker['coordinator']
+        entities.append(GeoRideBeaconUpdatedBinarySensorEntity(coordinator, tracker_beacon))
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_beacon.unique_id] = coordinator
 
-    async_add_entities(entities)
+    await async_add_entities(entities)
 
     return True
 
@@ -185,7 +193,6 @@ class GeoRideExternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
         self._name = tracker_device.tracker.tracker_name
         self._unit_of_measurement = "V"
         self.entity_id = f"{ENTITY_ID_FORMAT.format('external_battery_voltage')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
-
         self._state = 0
 
     @property
@@ -251,6 +258,49 @@ class GeoRideFixtimeSensorEntity(CoordinatorEntity, SensorEntity):
     def icon(self):
         """icon getter"""
         return "mdi:map-clock"
+
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return self._tracker_device.device_info
+
+class GeoRideBeaconBatterySensorEntity(CoordinatorEntity, SensorEntity):
+    """Represent a tracked device."""
+
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker_beacon:DeviceBeacon):
+        """Set up GeoRide entity."""
+        super().__init__(coordinator)
+        self._tracker_device = tracker_device
+        self._name = tracker_device.tracker.tracker_name
+        self._unit_of_measurement = "%"
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('battery_percent')}.{tracker_beacon.beacon.beacon_id}"# pylint: disable=C0301
+        self._state = 0
+
+    @property
+    def unique_id(self):
+        """Return the unique ID."""
+        return f"battery_percent_{self._tracker_device.beacon.beacon_id}"
+
+    @property
+    def state(self):
+        """state property"""
+        return self._tracker_device.beacon.battery_level
+
+    @property
+    def unit_of_measurement(self):
+        """unit of mesurment property"""
+        return self._unit_of_measurement
+
+    @property
+    def name(self):
+        """ GeoRide internal_battery_voltage name """
+        return f"{self._name} battery percent"
+
+    @property
+    def icon(self):
+        """icon getter"""
+        return "mdi:battery"
 
     @property
     def device_info(self):

@@ -16,7 +16,8 @@ import georideapilib.api as GeoRideApi
 
 from .const import DOMAIN as GEORIDE_DOMAIN
 from .device import Device
-ENTITY_ID_FORMAT: Final = DOMAIN + ".{}"
+
+ENTITY_ID_FORMAT: Final = GEORIDE_DOMAIN + ".{}"
 
 _LOGGER = logging.getLogger(__name__) 
 

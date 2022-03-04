@@ -27,7 +27,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
         tracker_device = coordoned_tracker['tracker_device']
         coordinator = coordoned_tracker['coordinator']
         entity = GeoRideTrackerEntity(coordinator, tracker_device, hass)
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.unique_id] = coordinator
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
         entities.append(entity)
 
     async_add_entities(entities)

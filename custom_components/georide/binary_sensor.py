@@ -34,14 +34,14 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
         entities.append(GeoRideNetworkBinarySensorEntity(coordinator, tracker_device))
         entities.append(GeoRideMovingBinarySensorEntity(coordinator, tracker_device))
 
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.unique_id] = coordinator
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
     
     coordoned_beacons = georide_context.georide_trackers_beacon_coordoned
     for coordoned_beacon in coordoned_beacons:
         tracker_beacon = coordoned_tracker['tracker_beacon']
         coordinator = coordoned_tracker['coordinator']
         entities.append(GeoRideBeaconUpdatedBinarySensorEntity(coordinator, tracker_beacon))
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker_beacon.unique_id] = coordinator
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.beacon.beacon_id] = coordinator
 
 
     async_add_entities(entities, True)

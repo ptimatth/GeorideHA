@@ -28,7 +28,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     for coordoned_tracker in coordoned_trackers:
         tracker_device = coordoned_tracker['tracker_device']
         coordinator = coordoned_tracker['coordinator']
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.unique_id] = coordinator
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
         entities.append(GeoRideOdometerSensorEntity(coordinator, tracker_device, hass))
         entities.append(GeoRideOdometerKmSensorEntity(coordinator, tracker_device, hass))
         entities.append(GeoRideFixtimeSensorEntity(coordinator, tracker_device))
@@ -41,9 +41,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
         tracker_beacon = coordoned_tracker['tracker_beacon']
         coordinator = coordoned_tracker['coordinator']
         entities.append(GeoRideBeaconUpdatedBinarySensorEntity(coordinator, tracker_beacon))
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker_beacon.unique_id] = coordinator
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.beacon.beacon_id] = coordinator
 
-    await async_add_entities(entities)
+    async_add_entities(entities)
 
     return True
 

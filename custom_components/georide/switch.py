@@ -30,7 +30,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     for coordoned_tracker in coordoned_trackers:
         tracker_device = coordoned_tracker['tracker_device']
         coordinator = coordoned_tracker['coordinator']
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.unique_id] = coordinator
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
         entities.append(GeoRideLockSwitchEntity(coordinator, tracker_device, hass))
         if tracker_device.tracker.version > 2:
             entities.append(GeoRideEcoModeSwitchEntity(coordinator, tracker_device, hass))

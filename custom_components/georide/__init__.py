@@ -268,7 +268,6 @@ class GeoRideContext:
         _LOGGER.info("Tracker beacon refresh")
         new_georide_tracker_beacons = await self._hass.async_add_executor_job(GeoRideApi.get_tracker_beacon,
                                                                        await self.get_token(), tracker_id)
-        
         for new_georide_tracker_beacon in new_georide_tracker_beacons:
             found = False
             for tracker_beacon in self._georide_trackers_beacon:
@@ -304,7 +303,7 @@ class GeoRideContext:
             }
             if tracker.version > 2:
                 tracker_beacons = await self.get_tracker_beacon_by_tracker_id(tracker.tracker_id)
-                for tracker_beacon in tracker_beacons
+                for tracker_beacon in tracker_beacons:
                     beacon_coordinator = DataUpdateCoordinator[Mapping[str, Any]](
                         hass,
                         _LOGGER,

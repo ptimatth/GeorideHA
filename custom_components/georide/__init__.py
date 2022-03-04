@@ -310,7 +310,7 @@ class GeoRideContext:
                         name= tracker_beacon.name
                     )
                     coordoned_beacon = {
-                        "beacon_device": DeviceBeacon(tracker_beacon),
+                        "tracker_beacon": DeviceBeacon(tracker_beacon),
                         "coordinator": coordinator
                     }
                     self._georide_trackers_beacon_coordoned.append(coordoned_beacon)

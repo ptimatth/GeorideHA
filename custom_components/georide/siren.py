@@ -35,7 +35,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
         if tracker_device.tracker.version > 2:
             entities.append(GeoRideSirenEntity(coordinator, tracker_device, hass))
 
-    await async_add_entities(entities)
+    async_add_entities(entities)
 
     return True
 

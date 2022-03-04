@@ -38,8 +38,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     
     coordoned_beacons = georide_context.georide_trackers_beacon_coordoned
     for coordoned_beacon in coordoned_beacons:
-        tracker_beacon = coordoned_tracker['tracker_beacon']
-        coordinator = coordoned_tracker['coordinator']
+        tracker_beacon = coordoned_beacon['tracker_beacon']
+        coordinator = coordoned_beacon['coordinator']
         entities.append(GeoRideBeaconUpdatedBinarySensorEntity(coordinator, tracker_beacon))
         hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.beacon.beacon_id] = coordinator
 

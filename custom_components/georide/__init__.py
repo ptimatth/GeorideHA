@@ -220,12 +220,13 @@ class GeoRideContext:
                 return tracker_beacon
         return {}
     
-    async def get_tracker_beacon_by_tracker_id(self, tracker_id):
+    async def get_tracker_beacons_by_tracker_id(self, tracker_id):
         """ here we return last tracker_beacon by id"""
+        filtered_beacon = []
         for tracker_beacon in self._georide_trackers_beacon:
             if tracker_beacon.linked_tracker_id == tracker_id:
-                return tracker_beacon
-        return {}
+                filtered_beacon.append(tracker_beacon)
+        return filtered_beacon
 
     async def refresh_trackers(self):
         """ here we return last tracker by id"""
@@ -265,15 +266,17 @@ class GeoRideContext:
     async def force_refresh_trackers_beacon(self, tracker_id):
         """Used to refresh the tracker list"""
         _LOGGER.info("Tracker beacon refresh")
-        new_georide_tracker_beacon = await self._hass.async_add_executor_job(GeoRideApi.get_tracker_beacon,
+        new_georide_tracker_beacons = await self._hass.async_add_executor_job(GeoRideApi.get_tracker_beacon,
                                                                        await self.get_token(), tracker_id)
-        found = False
-        for tracker_beacon in self._georide_trackers_beacon:
-            if tracker_beacon.tracker_id == new_georide_tracker_beacon.beacon_id:
-                tracker_beacon.update_all_data(new_georide_tracker_beacon)
-                found = True
-        if not found:
-            self._georide_trackers_beacon.append(new_georide_tracker_beacon)
+        
+        for new_georide_tracker_beacon in new_georide_tracker_beacons:
+            found = False
+            for tracker_beacon in self._georide_trackers_beacon:
+                if tracker_beacon.tracker_id == new_georide_tracker_beacon.beacon_id:
+                    tracker_beacon.update_all_data(new_georide_tracker_beacon)
+                    found = True
+            if not found:
+                self._georide_trackers_beacon.append(new_georide_tracker_beacon)
         if not self._thread_started:
             _LOGGER.info("Start the thread")
             # We refresh the tracker list each hours
@@ -300,17 +303,18 @@ class GeoRideContext:
                 "coordinator": coordinator
             }
             if tracker.version > 2:
-                tracker_beacon = await self.get_tracker_beacon_by_tracker_id(tracker.tracker_id)
-                beacon_coordinator = DataUpdateCoordinator[Mapping[str, Any]](
-                    hass,
-                    _LOGGER,
-                    name= tracker_beacon.name
-                )
-                coordoned_beacon = {
-                    "beacon_device": DeviceBeacon(tracker_beacon),
-                    "coordinator": coordinator
-                }
-                self._georide_trackers_beacon_coordoned(coordoned_beacon)
+                tracker_beacons = await self.get_tracker_beacon_by_tracker_id(tracker.tracker_id)
+                for tracker_beacon in tracker_beacons
+                    beacon_coordinator = DataUpdateCoordinator[Mapping[str, Any]](
+                        hass,
+                        _LOGGER,
+                        name= tracker_beacon.name
+                    )
+                    coordoned_beacon = {
+                        "beacon_device": DeviceBeacon(tracker_beacon),
+                        "coordinator": coordinator
+                    }
+                    self._georide_trackers_beacon_coordoned.append(coordoned_beacon)
             self._georide_trackers_coordoned.append(coordoned_tracker)
 
 

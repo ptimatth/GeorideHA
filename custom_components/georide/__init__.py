@@ -250,12 +250,12 @@ class GeoRideContext:
                 if tracker.tracker_id == refreshed_tracker.tracker_id:
                     tracker.update_all_data(refreshed_tracker)
                     if tracker.version > 2:
-                        await force_refresh_trackers_beacon(tracker.tracker_id)
+                        await self.force_refresh_trackers_beacon(tracker.tracker_id)
                     found = True
             if not found:
                 self._georide_trackers.append(refreshed_tracker)
                 if refreshed_tracker.version > 2:
-                    await force_refresh_trackers_beacon(tracker.tracker_id)
+                    await self.force_refresh_trackers_beacon(tracker.tracker_id)
     
         if not self._thread_started:
             _LOGGER.info("Start the thread")
@@ -320,7 +320,7 @@ class GeoRideContext:
         """Return coordoned trackers"""
 
         return self._georide_trackers_coordoned
-        
+
     @property
     def georide_trackers_beacon_coordoned(self):
         """Return coordoned trackers"""

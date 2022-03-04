@@ -111,11 +111,7 @@ class GeoRideOdometerKmSensorEntity(CoordinatorEntity, SensorEntity):
 
         self._state = 0
         self._hass = hass
-
-    @property
-    def entity_category(self):
-        return EntityCategory.DIAGNOSTIC
-
+        
     @property
     def unique_id(self):
         """Return the unique ID."""

@@ -300,7 +300,7 @@ class GeoRideContext:
                 "coordinator": coordinator
             }
             if tracker.version > 2:
-                tracker_beacon = await get_tracker_beacon_by_tracker_id(tracker.tracker_id)
+                tracker_beacon = await self.get_tracker_beacon_by_tracker_id(tracker.tracker_id)
                 beacon_coordinator = DataUpdateCoordinator[Mapping[str, Any]](
                     hass,
                     _LOGGER,

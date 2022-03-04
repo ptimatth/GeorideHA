@@ -250,13 +250,12 @@ class GeoRideContext:
                 if tracker.tracker_id == refreshed_tracker.tracker_id:
                     tracker.update_all_data(refreshed_tracker)
                     if tracker.version > 2:
-                        await self.force_refresh_trackers_beacon(tracker.tracker_id)
+                        self.force_refresh_trackers_beacon(tracker.tracker_id)
                     found = True
             if not found:
                 self._georide_trackers.append(refreshed_tracker)
                 if refreshed_tracker.version > 2:
-                    await self.force_refresh_trackers_beacon(tracker.tracker_id)
-    
+                    self.force_refresh_trackers_beacon(tracker.tracker_id)
         if not self._thread_started:
             _LOGGER.info("Start the thread")
             # We refresh the tracker list each hours

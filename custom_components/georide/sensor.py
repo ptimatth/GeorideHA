@@ -285,11 +285,11 @@ class GeoRideBeaconBatterySensorEntity(CoordinatorEntity, SensorEntity):
     """Represent a tracked device."""
 
     def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
-                 tracker_beacon:DeviceBeacon):
+                 tracker_beacon: DeviceBeacon):
         """Set up GeoRide entity."""
         super().__init__(coordinator)
-        self._tracker_device = tracker_device
-        self._name = tracker_device.tracker.tracker_name
+        self._tracker_device = tracker_beacon
+        self._name = tracker_beacon.beacon.name
         self._unit_of_measurement = "%"
         self.entity_id = f"{ENTITY_ID_FORMAT.format('battery_percent')}.{tracker_beacon.beacon.beacon_id}"# pylint: disable=C0301
         self._state = 0

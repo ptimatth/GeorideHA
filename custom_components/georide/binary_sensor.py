@@ -74,7 +74,7 @@ class GeoRideBeaconBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
         super().__init__(coordinator)
         self._tracker_device_beacon = tracker_device_beacon
         self._name = tracker_device_beacon.beacon.name
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('binary_sensor')}.{tracker_device.beacon.beacon_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('binary_sensor')}.{tracker_device_beacon.beacon.beacon_id}"# pylint: disable=C0301
         self._is_on = False
 
     @property

@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import DOMAIN as GEORIDE_DOMAIN
-from .device import Device
+from .device import Device, DeviceBeacon    
 
 
 _LOGGER = logging.getLogger(__name__) 

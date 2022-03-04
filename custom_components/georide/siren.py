@@ -6,7 +6,6 @@ import logging
 from typing import Any, Mapping
 
 from homeassistant.components.siren import SirenEntity
-from homeassistant.components.siren import ENTITY_ID_FORMAT
 
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -17,6 +16,7 @@ import georideapilib.api as GeoRideApi
 
 from .const import DOMAIN as GEORIDE_DOMAIN
 from .device import Device
+ENTITY_ID_FORMAT: Final = DOMAIN + ".{}"
 
 _LOGGER = logging.getLogger(__name__) 
 

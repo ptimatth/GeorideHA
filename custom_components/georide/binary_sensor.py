@@ -167,7 +167,7 @@ class GeoRideActiveSubscriptionBinarySensorEntity(GeoRideBinarySensorEntity):
         """state value property"""
         tracker = self._tracker_device.tracker
         if tracker.is_oldsubscription:
-            if .tracker.subscription_id is not None:
+            if tracker.subscription_id is not None:
                 return True
             return False
         else:

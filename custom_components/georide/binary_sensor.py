@@ -142,7 +142,7 @@ class GeoRideCrashedBinarySensorEntity(GeoRideBinarySensorEntity):
     @property
     def name(self):
         """ GeoRide odometer name """
-        return f"{self._name} is crashed"
+        return f"{self._name} is not crashed"
 
 class GeoRideActiveSubscriptionBinarySensorEntity(GeoRideBinarySensorEntity):
     """Represent a tracked device."""

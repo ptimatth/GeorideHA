@@ -32,7 +32,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 
-from .device import Device
+from .device import Device, DeviceBeacon
 from .const import (
     CONF_EMAIL,
     CONF_PASSWORD,

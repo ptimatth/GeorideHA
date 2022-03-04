@@ -108,10 +108,9 @@ class GeoRideOdometerKmSensorEntity(CoordinatorEntity, SensorEntity):
         self._name = tracker_device.tracker.tracker_name
         self._unit_of_measurement = "km"
         self.entity_id = f"{ENTITY_ID_FORMAT.format('odometer_km')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
-
         self._state = 0
         self._hass = hass
-        
+
     @property
     def unique_id(self):
         """Return the unique ID."""

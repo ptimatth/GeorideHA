@@ -313,7 +313,7 @@ class GeoRideContext:
                     beacon_coordinator = DataUpdateCoordinator[Mapping[str, Any]](
                         hass,
                         _LOGGER,
-                        name=tracker_beacon.name
+                        name=tracker_beacon.name,
                         update_method=self.refresh_trackers_beacon,
                         update_interval=update_interval
                     )

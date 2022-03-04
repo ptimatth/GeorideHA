@@ -84,7 +84,7 @@ class GeoRideBeaconBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
     @property
     def device_info(self):
         """Return the device info."""
-        return self._tracker_device.device_info
+        return self._tracker_device_beacon.device_info
 
 class GeoRideStolenBinarySensorEntity(GeoRideBinarySensorEntity):
     """Represent a tracked device."""

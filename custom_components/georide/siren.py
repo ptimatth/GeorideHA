@@ -17,7 +17,7 @@ import georideapilib.api as GeoRideApi
 from .const import DOMAIN as GEORIDE_DOMAIN
 from .device import Device
 
-ENTITY_ID_FORMAT: Final = GEORIDE_DOMAIN + ".{}"
+ENTITY_ID_FORMAT = GEORIDE_DOMAIN + ".{}"
 
 _LOGGER = logging.getLogger(__name__) 
 
@@ -31,7 +31,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
     for coordoned_tracker in coordoned_trackers:
         tracker_device = coordoned_tracker['tracker_device']
         coordinator = coordoned_tracker['coordinator']
-        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.unique_id] = coordinator
+        hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
         if tracker_device.tracker.version > 2:
             entities.append(GeoRideSirenEntity(coordinator, tracker_device, hass))
 

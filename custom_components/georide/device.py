@@ -54,7 +54,7 @@ class Device:
     @property
     def unique_id(self) -> str:
         """Get the unique id."""
-        return f"{GEORIDE_DOMAIN}_{self._tracker.tracker_id}"
+        return {(GEORIDE_DOMAIN, self._tracker.tracker_id)}
 
     def __str__(self) -> str:
         """Get string representation."""
@@ -103,7 +103,7 @@ class DeviceBeacon:
     def unique_id(self) -> str:
         """Get the unique id."""
         
-        return f"{GEORIDE_DOMAIN}_beacon_{self._tracker.tracker_id}"
+        return {(GEORIDE_DOMAIN, self._beacon.beacon_id)}
 
     def __str__(self) -> str:
         """Get string representation."""

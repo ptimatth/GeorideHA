@@ -467,7 +467,8 @@ class GeoRideContext:
         """on position callback"""
         _LOGGER.info("On position received")
         for coordoned_tracker in self._georide_trackers_coordoned:
-            tracker = coordoned_tracker['tracker_device'].tracker
+            tracker_device = coordoned_tracker['tracker_device'].tracker
+            tracker = tracker_device.tracker
             coordinator = coordoned_tracker['coordinator']
             if tracker.tracker_id == data['trackerId']:
                 tracker.latitude = data['latitude']

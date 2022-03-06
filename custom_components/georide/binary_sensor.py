@@ -251,6 +251,10 @@ class GeoRideMovingBinarySensorEntity(GeoRideBinarySensorEntity):
         self.entity_id = f"{ENTITY_ID_FORMAT.format('moving')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
+    def entity_category(self):
+        return EntityCategory.DIAGNOSTIC
+
+    @property
     def unique_id(self):
         """Return the unique ID."""
         return f"moving_{self._tracker_device.tracker.tracker_id}"

@@ -142,6 +142,50 @@ class GeoRideOdometerKmSensorEntity(CoordinatorEntity, SensorEntity):
         """Return the device info."""
         return self._tracker_device.device_info
 
+class GeoRideSpeedSensorEntity(CoordinatorEntity, SensorEntity):
+    """Represent a tracked device."""
+
+    def __init__(self, coordinator: DataUpdateCoordinator[Mapping[str, Any]],
+                 tracker_device:Device, hass):
+        """Set up GeoRide entity."""
+        super().__init__(coordinator)
+        self._tracker_device = tracker_device
+        self._name = tracker_device.tracker.tracker_name
+        self._unit_of_measurement = "km/h"
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('speed')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self._state = 0
+        self._hass = hass
+
+    @property
+    def unique_id(self):
+        """Return the unique ID."""
+        return f"speed_{self._tracker_device.tracker.tracker_id}"
+
+    @property
+    def state(self):
+        """state property"""
+        return self._tracker_device.tracker.speed
+
+    @property
+    def unit_of_measurement(self):
+        """unit of mesurment property"""
+        return self._unit_of_measurement
+
+    @property
+    def name(self):
+        """ GeoRide odometer name """
+        return f"{self._name} speed"
+
+    @property
+    def icon(self):
+        """icon getter"""
+        return "mdi:speedometer"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return self._tracker_device.device_info
+
 class GeoRideInternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
     """Represent a tracked device."""
     entity_category = EntityCategory.DIAGNOSTIC

@@ -32,6 +32,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
         entities.append(GeoRideOdometerSensorEntity(coordinator, tracker_device, hass))
         entities.append(GeoRideOdometerKmSensorEntity(coordinator, tracker_device, hass))
         entities.append(GeoRideFixtimeSensorEntity(coordinator, tracker_device))
+        entities.append(GeoRideSpeedSensorEntity(coordinator, tracker_device))        
         if tracker_device.tracker.version > 2:
             entities.append(GeoRideInternalBatterySensorEntity(coordinator, tracker_device))
             entities.append(GeoRideExternalBatterySensorEntity(coordinator, tracker_device))
@@ -155,6 +156,7 @@ class GeoRideSpeedSensorEntity(CoordinatorEntity, SensorEntity):
         self.entity_id = f"{ENTITY_ID_FORMAT.format('speed')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._state = 0
         self._hass = hass
+        self._state_class = "measurement"
 
     @property
     def unique_id(self):
@@ -165,6 +167,10 @@ class GeoRideSpeedSensorEntity(CoordinatorEntity, SensorEntity):
     def state(self):
         """state property"""
         return self._tracker_device.tracker.speed
+
+    @property
+    def state_class(self):
+        return self._state_class
 
     @property
     def unit_of_measurement(self):
@@ -198,8 +204,17 @@ class GeoRideInternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
         self._name = tracker_device.tracker.tracker_name
         self._unit_of_measurement = "V"
         self.entity_id = f"{ENTITY_ID_FORMAT.format('internal_battery_voltage')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
-
         self._state = 0
+        self._state_class = "measurement"
+        self._device_class = "voltage"
+
+    @property
+    def state_class(self):
+        return self._state_class
+
+    @property
+    def device_class(self):
+        return self._device_class
 
     @property
     def entity_category(self):
@@ -247,6 +262,16 @@ class GeoRideExternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
         self._unit_of_measurement = "V"
         self.entity_id = f"{ENTITY_ID_FORMAT.format('external_battery_voltage')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._state = 0
+        self._state_class = "measurement"
+        self._device_class = "voltage"
+
+    @property
+    def state_class(self):
+        return self._state_class
+
+    @property
+    def device_class(self):
+        return self._device_class
 
     @property
     def entity_category(self):

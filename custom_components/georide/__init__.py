@@ -182,7 +182,7 @@ class GeoRideContext:
         socket.subscribe_device(self.on_device_callback)
         socket.subscribe_position(self.on_position_callback)
         socket.subscribe_alarm(self.on_alarm_callback)
-        socker.subscribe_refresh_tracker(self.on_refresh_tracker_callback)
+        socket.subscribe_refresh_tracker(self.on_refresh_tracker_callback)
         self._socket = socket
 
         socket.init()
@@ -396,7 +396,7 @@ class GeoRideContext:
         """on device callback"""
         _LOGGER.info("On refresh tracker received")
         self._previous_refresh = math.floor(time.time()/60)
-        await self.force_refresh_trackers()
+        self.force_refresh_trackers()
     
         for coordoned_tracker in self._georide_trackers_coordoned:
             tracker_device = coordoned_tracker['tracker_device']

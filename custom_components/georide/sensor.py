@@ -31,8 +31,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: d
         hass.data[GEORIDE_DOMAIN]["devices"][tracker_device.tracker.tracker_id] = coordinator
         entities.append(GeoRideOdometerSensorEntity(coordinator, tracker_device, hass))
         entities.append(GeoRideOdometerKmSensorEntity(coordinator, tracker_device, hass))
+        entities.append(GeoRideSpeedSensorEntity(coordinator, tracker_device,hass))        
         entities.append(GeoRideFixtimeSensorEntity(coordinator, tracker_device))
-        entities.append(GeoRideSpeedSensorEntity(coordinator, tracker_device))        
         if tracker_device.tracker.version > 2:
             entities.append(GeoRideInternalBatterySensorEntity(coordinator, tracker_device))
             entities.append(GeoRideExternalBatterySensorEntity(coordinator, tracker_device))
@@ -317,7 +317,6 @@ class GeoRideFixtimeSensorEntity(CoordinatorEntity, SensorEntity):
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
         self.entity_id = f"{ENTITY_ID_FORMAT.format('fixtime')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
-
         self._state = 0
         self._device_class = "timestamp"
 

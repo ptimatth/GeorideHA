@@ -6,7 +6,7 @@
   "issue_tracker": "https://github.com/ptimatth/GeorideHA/issues",
   "iot_class": "cloud_polling",
   "requirements": [
-    "georideapilib>=0.8.2",
+    "georideapilib>=0.8.3",
     "pyjwt==2.1.0"
   ],
   "dependencies": [],

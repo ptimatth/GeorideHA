@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities): # pylint: disable=W0613
     """Set up Georide tracker based off an entry."""
     georide_context = hass.data[GEORIDE_DOMAIN]["context"]
-    coordoned_trackers = georide_context.get_coordoned_trackers()
+    coordoned_trackers = georide_context.georide_trackers_coordoned
 
     entities = []
     for coordoned_tracker in coordoned_trackers:
@@ -46,6 +46,10 @@ class GeoRideTrackerEntity(CoordinatorEntity, TrackerEntity):
         self._tracker_device = tracker_device
         self.entity_id = DOMAIN + ".{}".format(tracker_device.tracker.tracker_id)
         self._hass = hass
+
+    @property
+    def entity_category(self):
+        return None
 
     @property
     def unique_id(self):

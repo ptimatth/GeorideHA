@@ -44,10 +44,7 @@ from .const import (
     SIREN_ACTIVATION_DELAY
 )
 
-
-
 _LOGGER = logging.getLogger(__name__)
-
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -58,7 +55,6 @@ CONFIG_SCHEMA = vol.Schema(
     },
     extra=vol.ALLOW_EXTRA,
 )
-
 
 async def async_setup(hass, config):
     """Setup  GeoRide component."""
@@ -75,7 +71,6 @@ async def async_setup(hass, config):
 
     # Return boolean to indicate that initialization was successful.
     return True
-
 
 async def async_setup_entry(hass, entry):
     """Set up GeoRide entry."""
@@ -111,7 +106,7 @@ async def async_setup_entry(hass, entry):
     return True
 
 
-async def async_unload_entry(hass, entry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload an GeoRide config entry."""
 
     await hass.config_entries.async_forward_entry_unload(entry, "device_tracker")
@@ -120,9 +115,22 @@ async def async_unload_entry(hass, entry):
     await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
     await hass.config_entries.async_forward_entry_unload(entry, "siren")
 
+    context = hass.data[DOMAIN]["context"]
+    context.socket.disconnect() // Disconnect only if all devices is disabled
+
+    return True
+
+async def async_remove_config_entry_device(hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry) -> bool:
+     """Remove an GeoRide device entry."""
+
+    await hass.config_entries.async_remove_config_entry_device(device_entry, "device_tracker")
+    await hass.config_entries.async_remove_config_entry_device(device_entry, "switch")
+    await hass.config_entries.async_remove_config_entry_device(device_entry, "sensor")
+    await hass.config_entries.async_remove_config_entry_device(device_entry, "binary_sensor")
+    await hass.config_entries.async_remove_config_entry_device(device_entry, "siren")
 
     context = hass.data[DOMAIN]["context"]
-    context.socket.disconnect()
+    # context.socket.disconnect()
 
     return True
 

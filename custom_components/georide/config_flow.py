@@ -12,7 +12,7 @@ from .const import CONF_EMAIL, CONF_PASSWORD, CONF_TOKEN, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-@config_entries.HANDLERS.register("georide")
+@config_entries.HANDLERS.register(DOMAIN)
 class GeoRideConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """GeoRide config flow """
     
@@ -36,8 +36,6 @@ class GeoRideConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Required(CONF_EMAIL): vol.All(str, vol.Length(min=3)),
             vol.Required(CONF_PASSWORD): vol.All(str)
         }))
-
-
 
     async def async_step_georide_login(self, user_input):
         """ try to seupt GeoRide Account """

@@ -141,7 +141,7 @@ class DeviceBeacon:
     @property
     def via_device(self) -> str:
         """Get the unique id."""
-        return {(GEORIDE_DOMAIN, self._beacon.tracker_id)}
+        return (GEORIDE_DOMAIN, self._beacon.linked_tracker_id )
 
     @property
     def device_info(self):

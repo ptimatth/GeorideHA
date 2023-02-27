@@ -5,8 +5,7 @@ from typing import Any, Mapping
 
 from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.components.sensor import ENTITY_ID_FORMAT
+from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, ENTITY_ID_FORMAT
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -246,6 +245,11 @@ class GeoRideInternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
         return "mdi:battery"
 
     @property
+    def device_class(self) -> str:
+        """device class"""
+        return SensorDeviceClass.VOLTAGE
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._tracker_device.device_info
@@ -301,6 +305,11 @@ class GeoRideExternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
     def icon(self):
         """icon getter"""
         return "mdi:battery"
+
+    @property
+    def device_class(self) -> str:
+        """device class"""
+        return SensorDeviceClass.VOLTAGE
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -390,6 +399,11 @@ class GeoRideBeaconBatterySensorEntity(CoordinatorEntity, SensorEntity):
     def icon(self):
         """icon getter"""
         return "mdi:battery"
+
+    @property
+    def device_class(self) -> str:
+        """device class"""
+        return SensorDeviceClass.BATTERY
 
     @property
     def device_info(self) -> DeviceInfo:

@@ -44,10 +44,7 @@ from .const import (
     SIREN_ACTIVATION_DELAY
 )
 
-
-
 _LOGGER = logging.getLogger(__name__)
-
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -58,7 +55,6 @@ CONFIG_SCHEMA = vol.Schema(
     },
     extra=vol.ALLOW_EXTRA,
 )
-
 
 async def async_setup(hass, config):
     """Setup  GeoRide component."""
@@ -75,7 +71,6 @@ async def async_setup(hass, config):
 
     # Return boolean to indicate that initialization was successful.
     return True
-
 
 async def async_setup_entry(hass, entry):
     """Set up GeoRide entry."""
@@ -120,10 +115,13 @@ async def async_unload_entry(hass, entry):
     await hass.config_entries.async_forward_entry_unload(entry, "binary_sensor")
     await hass.config_entries.async_forward_entry_unload(entry, "siren")
 
-
     context = hass.data[DOMAIN]["context"]
-    context.socket.disconnect()
+    context.socket.disconnect() # Disconnect only if all devices is disabled
 
+    return True
+
+async def async_remove_config_entry_device(hass, config_entry, device_entry) -> bool:
+    """Remove an GeoRide device entry."""
     return True
 
 
@@ -308,7 +306,7 @@ class GeoRideContext:
                 "tracker_device": Device(tracker),
                 "coordinator": coordinator
             }
-            if tracker.version > 2:
+            if tracker.has_beacon:
                 tracker_beacons = await self.get_tracker_beacons_by_tracker_id(tracker.tracker_id)
                 for tracker_beacon in tracker_beacons:
                     beacon_coordinator = DataUpdateCoordinator[Mapping[str, Any]](

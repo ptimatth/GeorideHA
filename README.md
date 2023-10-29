@@ -102,12 +102,21 @@ mode: single
 
 ## Installation
 ### Option 1
-- Just folow the integration config steps.
+- Just follow the integration config steps.
 
 ### Option 2
-- Add the folowing line in your configuration.yml
+- Add the following line in your configuration.yml
 ```yaml
     georide:
         email: <your-email>@exmple.com
         password: <your-password>
 ```
+
+### Option 3 (manual)
+- Download .zip git repo
+- Go to /config (with File Editor or SSH)
+- Unzip GeorideHA.zip
+- Restart Home Assistant
+- Go to "Integrations"
+- If GeoRide not display, choose "add integration"
+- Configure GeoRide add-on

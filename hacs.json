@@ -4,5 +4,5 @@
   "render_readme": true,
   "domains": ["devices_tracker", "sensor"],
   "country": ["FR"],
-  "homeassistant": "2023.2.0"
+  "homeassistant": "2024.11.0"
 }

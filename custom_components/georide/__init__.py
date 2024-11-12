@@ -25,7 +25,6 @@ import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.event as ha_event
 
 from homeassistant.setup import async_when_setup
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -93,16 +92,7 @@ async def async_setup_entry(hass, entry):
     # We add trackers to the context
     await context.init_context(hass)
 
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "device_tracker"))
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "switch"))
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "sensor"))
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "binary_sensor"))
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "siren"))
+    await hass.config_entries.async_forward_entry_setups(entry, ["device_tracker", "switch", "sensor", "binary_sensor", "siren"])
     return True
 
 

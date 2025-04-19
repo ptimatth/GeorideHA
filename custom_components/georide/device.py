@@ -52,6 +52,8 @@ class Device:
         elif self._tracker.version == 3:
             if self._tracker.model == 'georide-3':
                 name = "GeoRide 3"
+            else if self._tracker.model == 'georide-3s':
+                name = "GeoRide 3S"
             else:
                 name = "GeoRide Mini"
         else:

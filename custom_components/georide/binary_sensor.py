@@ -151,7 +151,7 @@ class GeoRideActiveSubscriptionBinarySensorEntity(GeoRideBinarySensorEntity):
                  tracker_device: Device):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_active_subscription_')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_active_subscription')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def entity_category(self):

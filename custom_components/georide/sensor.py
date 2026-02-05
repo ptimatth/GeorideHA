@@ -57,7 +57,7 @@ class GeoRideOdometerSensorEntity(CoordinatorEntity, SensorEntity):
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
         self._unit_of_measurement = "m"
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('odometer')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('odometer')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
         self._state = 0
         self._hass = hass
@@ -69,7 +69,7 @@ class GeoRideOdometerSensorEntity(CoordinatorEntity, SensorEntity):
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return f"odometer_{self._tracker_device.tracker.tracker_id}"
+        return f"odometer_{self._tracker_device.tracker.tracker_id}".lower()
 
     @property
     def state(self):
@@ -107,14 +107,14 @@ class GeoRideOdometerKmSensorEntity(CoordinatorEntity, SensorEntity):
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
         self._unit_of_measurement = "km"
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('odometer_km')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('odometer_km')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._state = 0
         self._hass = hass
 
     @property
     def unique_id(self):
         """Return the unique ID."""
-        return f"odometer_km_{self._tracker_device.tracker.tracker_id}"
+        return f"odometer_km_{self._tracker_device.tracker.tracker_id}".lower()
 
     @property
     def state(self):
@@ -152,7 +152,7 @@ class GeoRideSpeedSensorEntity(CoordinatorEntity, SensorEntity):
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
         self._unit_of_measurement = "km/h"
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('speed')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('speed')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._state = 0
         self._hass = hass
         self._state_class = "measurement"
@@ -202,7 +202,7 @@ class GeoRideInternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
         self._unit_of_measurement = "V"
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('internal_battery_voltage')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('internal_battery_voltage')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._state = 0
         self._state_class = "measurement"
         self._device_class = "voltage"
@@ -264,7 +264,7 @@ class GeoRideExternalBatterySensorEntity(CoordinatorEntity, SensorEntity):
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
         self._unit_of_measurement = "V"
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('external_battery_voltage')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('external_battery_voltage')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._state = 0
         self._state_class = "measurement"
         self._device_class = "voltage"
@@ -325,7 +325,7 @@ class GeoRideFixtimeSensorEntity(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('fixtime')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('fixtime')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._state = 0
         self._device_class = "timestamp"
 
@@ -368,7 +368,7 @@ class GeoRideBeaconBatterySensorEntity(CoordinatorEntity, SensorEntity):
         self._tracker_device = tracker_beacon
         self._name = tracker_beacon.beacon.name
         self._unit_of_measurement = "%"
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('battery_percent')}.{tracker_beacon.beacon.beacon_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('battery_percent')}_{tracker_beacon.beacon.beacon_id}"# pylint: disable=C0301
         self._state = 0
 
     @property

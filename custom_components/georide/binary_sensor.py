@@ -58,7 +58,7 @@ class GeoRideBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
 
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('binary_sensor')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('binary_sensor')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._is_on = False
 
     @property
@@ -74,7 +74,7 @@ class GeoRideBeaconBinarySensorEntity(CoordinatorEntity, BinarySensorEntity):
         super().__init__(coordinator)
         self._tracker_device_beacon = tracker_device_beacon
         self._name = tracker_device_beacon.beacon.name
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('binary_sensor')}.{tracker_device_beacon.beacon.beacon_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('binary_sensor')}_{tracker_device_beacon.beacon.beacon_id}"# pylint: disable=C0301
         self._is_on = False
 
     @property
@@ -92,7 +92,7 @@ class GeoRideStolenBinarySensorEntity(GeoRideBinarySensorEntity):
                  tracker_device: Device):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_stolen')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_stolen')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def unique_id(self):
@@ -122,7 +122,7 @@ class GeoRideCrashedBinarySensorEntity(GeoRideBinarySensorEntity):
                  tracker_device: Device):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_crashed')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_crashed')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def unique_id(self):
@@ -151,7 +151,7 @@ class GeoRideActiveSubscriptionBinarySensorEntity(GeoRideBinarySensorEntity):
                  tracker_device: Device):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_active_subscription_')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_active_subscription_')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def entity_category(self):
@@ -187,7 +187,7 @@ class GeoRideOwnerBinarySensorEntity(GeoRideBinarySensorEntity):
                  tracker_device: Device):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_owner')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('is_owner')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def unique_id(self):
@@ -213,7 +213,7 @@ class GeoRideNetworkBinarySensorEntity(GeoRideBinarySensorEntity):
                  tracker_device: Device):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('have_network')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('have_network')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def entity_category(self):
@@ -253,7 +253,7 @@ class GeoRideMovingBinarySensorEntity(GeoRideBinarySensorEntity):
                  tracker_device: Device):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('moving')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('moving')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def entity_category(self):
@@ -294,7 +294,7 @@ class GeoRideUpdatedBinarySensorEntity(GeoRideBinarySensorEntity):
                  tracker_device: Device):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('update')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('update')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
 
     @property
     def unique_id(self):
@@ -326,7 +326,7 @@ class GeoRideBeaconUpdatedBinarySensorEntity(GeoRideBeaconBinarySensorEntity):
                  tracker_beacon_device: DeviceBeacon):
         """Set up Georide entity."""
         super().__init__(coordinator, tracker_beacon_device)
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('update')}.{tracker_beacon_device.beacon.beacon_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('update')}_{tracker_beacon_device.beacon.beacon_id}"# pylint: disable=C0301
 
     @property
     def unique_id(self):

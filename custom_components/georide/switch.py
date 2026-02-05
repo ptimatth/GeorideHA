@@ -48,7 +48,7 @@ class GeoRideLockSwitchEntity(CoordinatorEntity, SwitchEntity):
         super().__init__(coordinator)
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('lock')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('lock')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._hass = hass
 
     @property
@@ -120,7 +120,7 @@ class GeoRideEcoModeSwitchEntity(CoordinatorEntity, SwitchEntity):
         super().__init__(coordinator)
         self._tracker_device = tracker_device
         self._name = tracker_device.tracker.tracker_name
-        self.entity_id = f"{ENTITY_ID_FORMAT.format('eco_mode')}.{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
+        self.entity_id = f"{ENTITY_ID_FORMAT.format('eco_mode')}_{tracker_device.tracker.tracker_id}"# pylint: disable=C0301
         self._hass = hass
 
     @property
